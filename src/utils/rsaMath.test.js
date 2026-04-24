@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isPrime, gcdTrace, extGcdTrace, modInverse } from './rsaMath.js';
+import { isPrime, gcdTrace, extGcdTrace, modInverse, pickECandidates } from './rsaMath.js';
 
 describe('isPrime', () => {
   it('flags 2, 3, 61 as prime', () => {
@@ -81,5 +81,21 @@ describe('modInverse', () => {
 
   it('returns null when gcd != 1', () => {
     expect(modInverse(6n, 9n)).toBe(null);
+  });
+});
+
+describe('pickECandidates', () => {
+  it('returns the standard candidates with verdicts for phi = 3120', () => {
+    const cands = pickECandidates(3120n);
+    const e3 = cands.find(c => c.e === 3n);
+    expect(e3.valid).toBe(false);
+    const e17 = cands.find(c => c.e === 17n);
+    expect(e17.valid).toBe(true);
+    expect(e17.trace.gcd).toBe(1n);
+  });
+
+  it('always includes 65537 for completeness', () => {
+    const cands = pickECandidates(3120n);
+    expect(cands.some(c => c.e === 65537n)).toBe(true);
   });
 });

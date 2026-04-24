@@ -86,3 +86,13 @@ export function isPrime(n) {
   }
   return { isPrime: true, checks };
 }
+
+const DEFAULT_E_CANDIDATES = [3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 65537n];
+
+export function pickECandidates(phi, candidates = DEFAULT_E_CANDIDATES) {
+  return candidates.map(e => {
+    if (e >= phi) return { e, trace: null, valid: false };
+    const trace = gcdTrace(phi, e);
+    return { e, trace, valid: trace.gcd === 1n };
+  });
+}
