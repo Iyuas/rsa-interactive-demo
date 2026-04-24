@@ -1,282 +1,228 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
+import PresetPicker from './components/PresetPicker';
+import PrimeCheckViz from './components/PrimeCheckViz';
+import EuclidTable from './components/EuclidTable';
+import BackSubList from './components/BackSubList';
+import MathCard from './components/MathCard';
+import { isPrime, gcdTrace, extGcdTrace, pickECandidates, modInverse } from './utils/rsaMath';
 
-function gcd(a, b) {
-  return b === 0 ? a : gcd(b, a % b);
-}
+const SECTIONS = [
+  { id: 'primes',   label: '1. Простые числа' },
+  { id: 'modulus',  label: '2. Модуль n' },
+  { id: 'phi',      label: '3. Функция Эйлера φ(n)' },
+  { id: 'e',        label: '4. Открытая экспонента e' },
+  { id: 'd',        label: '5. Секретная экспонента d' },
+  { id: 'verify',   label: '6. Проверка' },
+];
 
-function modInverse(e, phi) {
-  let m0 = phi, t, q;
-  let x0 = 0, x1 = 1;
-
-  if (phi === 1) return 0;
-
-  while (e > 1) {
-    q = Math.floor(e / phi);
-    t = phi;
-    phi = e % phi;
-    e = t;
-    t = x0;
-    x0 = x1 - q * x0;
-    x1 = t;
-  }
-
-  if (x1 < 0) x1 += m0;
-  return x1;
-}
+// Trial-division visualization becomes impractical for primes above this threshold
+// (sqrt(10000) = 100 check rows; anything larger freezes the UI while isPrime runs).
+const PRIME_VIZ_THRESHOLD = 10000n;
 
 export default function KeyGeneration({ state, setState, nextStep }) {
-  const [animStep, setAnimStep] = useState(0);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [section, setSection] = useState(0);
 
-  const generatePrimes = () => {
-    setIsGenerating(true);
-    let counter = 0;
-    const interval = setInterval(() => {
-      setState(s => ({
-        ...s,
-        p: Math.floor(Math.random() * 100) + 10,
-        q: Math.floor(Math.random() * 100) + 10,
-      }));
-      counter++;
-      if (counter > 15) {
-        clearInterval(interval);
-        setState(s => ({ ...s, p: 61, q: 53 }));
-        setIsGenerating(false);
-      }
-    }, 50);
+  const pCheck = useMemo(
+    () => (state.p !== null && state.p <= PRIME_VIZ_THRESHOLD) ? isPrime(state.p) : null,
+    [state.p],
+  );
+  const qCheck = useMemo(
+    () => (state.q !== null && state.q <= PRIME_VIZ_THRESHOLD) ? isPrime(state.q) : null,
+    [state.q],
+  );
+
+  const eCandidates = useMemo(
+    () => state.phi !== null ? pickECandidates(state.phi) : [],
+    [state.phi],
+  );
+
+  const eForwardTrace = useMemo(
+    () => (state.e !== null && state.phi !== null) ? gcdTrace(state.phi, state.e) : null,
+    [state.e, state.phi],
+  );
+  const eExtTrace = useMemo(
+    () => (state.e !== null && state.phi !== null) ? extGcdTrace(state.e, state.phi) : null,
+    [state.e, state.phi],
+  );
+
+  const applyPrimes = ({ presetId, p, q }) => {
+    const n = p * q;
+    const phi = (p - 1n) * (q - 1n);
+    setState(s => ({ ...s, presetId, p, q, n, phi, e: null, d: null, blocks: [] }));
+    // Stay on section 0 so the user can watch the trial-division animation run;
+    // they advance manually with the "Далее" pill or bottom button.
   };
 
-  const calcN = () => {
-    setState(s => ({ ...s, n: s.p * s.q }));
-    setAnimStep(1);
+  const pickE = (e) => {
+    const d = modInverse(e, state.phi);
+    setState(s => ({ ...s, e, d }));
+    setSection(4);
   };
 
-  const calcPhi = () => {
-    setState(s => ({ ...s, phi: (s.p - 1) * (s.q - 1) }));
-    setAnimStep(2);
-  };
-
-  const calcE = () => {
-    // Basic e selection for demo
-    let e = 3;
-    while (gcd(e, state.phi) !== 1) {
-      e += 2;
-    }
-    // Often 65537 is used but let's use the actual first coprime or just fake for demo
-    setState(s => ({ ...s, e: 17 })); 
-    setAnimStep(3);
-  };
-
-  const calcD = () => {
-    const d = modInverse(state.e, state.phi);
-    setState(s => ({ ...s, d }));
-    setAnimStep(4);
-  };
-
-  const insights = [
-    { title: "The Foundation: Primes", text: "RSA relies on the mathematical difficulty of factoring large numbers. We start by picking two distinct prime numbers, p and q. In a real system, these would be hundreds of digits long." },
-    { title: "The Trapdoor: Modulus (n)", text: `By multiplying p and q together (${state.p || 'p'} × ${state.q || 'q'}), we get the Modulus n = ${state.n}. This number will be shared publicly. While it's easy to multiply two primes, it's currently virtually impossible for computers to reverse this and find p and q from n alone.` },
-    { title: "The Secret Cycle: Euler's Totient φ(n)", text: `We calculate φ(n) = (p-1) × (q-1) = ${state.phi}. This mysterious value calculates the number of integers smaller than n that share no common factors with n. It gives us the internal 'cycle length' to make the math work, and must be kept totally secret!` },
-    { title: "The Lock: Public Exponent (e)", text: `We mathematically choose public exponent 'e' (${state.e}) such that it shares no common factors with φ(n). Together with 'n', this forms the Public Key. Anyone in the world can use it to encrypt a message to you.` },
-    { title: "The Key: Private Exponent (d)", text: `We find the magical inverse 'd' (${state.d}) such that (e × d) mod φ(n) = 1. Thanks to Euler's Theorem, this means applying 'd' perfectly reverses the scrambling done by 'e'. Your Private Key is now complete and can unlock the ciphertext!` },
-  ];
+  const ready = state.p && state.q && state.n && state.phi && state.e && state.d;
+  const bigPrimes = state.p !== null && state.p > PRIME_VIZ_THRESHOLD;
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-      {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-[#041b3c] mb-2">Interactive Demo: Key Generation</h2>
-        <p className="text-gray-600 max-w-2xl">Step 1: Understand why cryptographers pick prime numbers to construct the locking mechanics of RSA.</p>
+      <div className="mb-6">
+        <h2 className="text-3xl font-bold text-[#041b3c] mb-2">Генерация ключей RSA</h2>
+        <p className="text-gray-600 max-w-2xl">
+          Шаг 1 из 3. Смотрим, как из двух простых чисел выводятся все части публичного и секретного ключа.
+        </p>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left: Interactive Controls */}
-        <div className="col-span-12 lg:col-span-7 space-y-6">
-          <div className="bg-white border border-[#c3c6d6] rounded-xl overflow-hidden shadow-sm">
-            <div className="bg-[#f1f3ff] px-4 py-3 border-b border-[#c3c6d6] flex justify-between items-center">
-              <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Step 1.1: Prime Selection</h3>
-              <span className="material-symbols-outlined text-[#003d9b] text-sm">verified_user</span>
-            </div>
-            <div className="p-6 space-y-6">
-              <div className="flex gap-4 mb-2">
-                <button 
-                  onClick={generatePrimes}
-                  className="bg-[#e8edff] text-[#003d9b] hover:bg-[#d7e2ff] border border-[#b2c5ff] px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors w-full justify-center"
-                >
-                  <span className="material-symbols-outlined text-base">casino</span>
-                  Auto-Generate Primes
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-600 block">Prime Number p</label>
-                  <input 
-                    type="number"
-                    value={state.p || ''}
-                    onChange={(e) => setState({...state, p: parseInt(e.target.value) || 0})}
-                    className="w-full border border-[#c3c6d6] rounded-lg p-3 font-mono text-gray-800 focus:ring-2 focus:ring-[#003d9b] focus:border-transparent transition-all outline-none" 
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-600 block">Prime Number q</label>
-                  <input 
-                    type="number"
-                    value={state.q || ''}
-                    onChange={(e) => setState({...state, q: parseInt(e.target.value) || 0})}
-                    className="w-full border border-[#c3c6d6] rounded-lg p-3 font-mono text-gray-800 focus:ring-2 focus:ring-[#003d9b] focus:border-transparent transition-all outline-none" 
-                  />
-                </div>
-              </div>
+      <div className="flex flex-wrap gap-2 mb-6">
+        {SECTIONS.map((s, i) => {
+          const done = i < section;
+          const active = i === section;
+          return (
+            <button key={s.id} onClick={() => setSection(i)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                active ? 'bg-[#003d9b] text-white' :
+                done ? 'bg-green-50 text-green-700 border border-green-200' :
+                'bg-gray-100 text-gray-400'
+              }`}
+            >{s.label}</button>
+          );
+        })}
+      </div>
 
-              {/* Sequential Actions */}
-              <div className="space-y-3 pt-4 border-t border-gray-100">
-                <button 
-                  onClick={calcN}
-                  disabled={!state.p || !state.q}
-                  className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 font-bold transition-all shadow-sm ${animStep >= 0 && state.p ? 'bg-[#003d9b] text-white hover:bg-[#0052cc]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
-                >
-                  <span className="material-symbols-outlined">play_circle</span>
-                  Generate Modulus (n)
-                </button>
-                <button 
-                  onClick={calcPhi}
-                  disabled={animStep < 1}
-                  className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 font-bold transition-all ${animStep >= 1 ? 'bg-[#003d9b] text-white hover:bg-[#0052cc]' : 'bg-[#e8edff] text-gray-400 cursor-not-allowed border border-dashed border-gray-300'}`}
-                >
-                  <span className="material-symbols-outlined">functions</span>
-                  Compute Hidden Cycle length: φ(n)
-                </button>
-                <button 
-                  onClick={calcE}
-                  disabled={animStep < 2}
-                  className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 font-bold transition-all ${animStep >= 2 ? 'bg-[#003d9b] text-white hover:bg-[#0052cc]' : 'bg-[#e8edff] text-gray-400 cursor-not-allowed border border-dashed border-gray-300'}`}
-                >
-                  <span className="material-symbols-outlined">key</span>
-                  Select Public Locking Exponent (e)
-                </button>
-                <button 
-                  onClick={calcD}
-                  disabled={animStep < 3}
-                  className={`w-full py-3 rounded-lg flex items-center justify-center gap-2 font-bold transition-all ${animStep >= 3 ? 'bg-[#003d9b] text-white hover:bg-[#0052cc]' : 'bg-[#e8edff] text-gray-400 cursor-not-allowed border border-dashed border-gray-300'}`}
-                >
-                  <span className="material-symbols-outlined">vpn_key</span>
-                  Calculate Private Unlocking Exponent (d)
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <button 
-            onClick={nextStep}
-            disabled={animStep < 4}
-            className={`w-full border-2 border-dashed p-6 rounded-xl font-bold flex items-center justify-center gap-3 transition-all group ${animStep >= 4 ? 'border-[#003d9b] text-[#003d9b] hover:bg-blue-50 cursor-pointer shadow-md' : 'border-[#c3c6d6] text-gray-400 cursor-not-allowed'}`}
-          >
-            Next Step: Test the Keys (Encryption)
-            <span className={`material-symbols-outlined transition-transform ${animStep >= 4 ? 'group-hover:translate-x-1' : ''}`}>arrow_forward</span>
-          </button>
-        </div>
-
-        {/* Right: Lab Output */}
-        <div className="col-span-12 lg:col-span-5 space-y-6">
+      <div className="space-y-6">
+        {section === 0 && (
           <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-[#d4e0f8] rounded-lg text-[#535f73]">
-                <span className="material-symbols-outlined">info</span>
+            <h3 className="text-lg font-bold mb-1">Выберите простые p и q</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              RSA полагается на то, что перемножить два простых легко, а разложить n обратно — нет.
+            </p>
+            <PresetPicker presetId={state.presetId} onApply={applyPrimes} />
+            {state.p !== null && state.q !== null && (
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {bigPrimes ? (
+                  <>
+                    <MathCard tone="green" title="p — большое простое"
+                      expression={`p = ${state.p}`}
+                      note="Простота проверена заранее (trial division на √p занял бы тысячи шагов — пропускаем для наглядности)." />
+                    <MathCard tone="green" title="q — большое простое"
+                      expression={`q = ${state.q}`}
+                      note="Для Real-пресета демонстрируем, что RSA работает и на числах уровня 2³¹." />
+                  </>
+                ) : (
+                  <>
+                    {pCheck && <PrimeCheckViz n={state.p} trace={pCheck} label="Проверка p" />}
+                    {qCheck && <PrimeCheckViz n={state.q} trace={qCheck} label="Проверка q" />}
+                  </>
+                )}
               </div>
-              <h4 className="text-lg font-bold text-[#041b3c]">Variables Breakdown</h4>
-            </div>
-            
-            {/* EDUCATIONAL BOX */}
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={animStep}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="bg-[#f1f3ff] border-l-4 border-[#003d9b] p-4 rounded-r-lg mb-6 shadow-sm relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 p-2 opacity-5">
-                   <span className="material-symbols-outlined text-6xl">school</span>
-                </div>
-                <h5 className="font-bold text-[#003d9b] text-sm mb-2 flex items-center">
-                  <span className="material-symbols-outlined text-sm mr-2 fill-current">tips_and_updates</span>
-                  {insights[animStep].title}
-                </h5>
-                <p className="text-sm text-gray-700 leading-relaxed font-medium relative z-10">{insights[animStep].text}</p>
-              </motion.div>
-            </AnimatePresence>
-
-            <div className="p-4 bg-gray-50 rounded-lg space-y-3 border border-gray-200 shadow-inner">
-              <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                <span className="font-mono text-xs uppercase text-gray-500">Modulus (n) = p × q</span>
-                <AnimatePresence mode="popLayout">
-                  <motion.span 
-                    key={state.n}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="font-mono text-[#003d9b] font-bold text-lg"
-                  >
-                    {state.n ? state.n : '---'}
-                  </motion.span>
-                </AnimatePresence>
-              </div>
-              <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                <span className="font-mono text-xs uppercase text-gray-500">φ(n) = (p-1)(q-1)</span>
-                <AnimatePresence mode="popLayout">
-                  <motion.span 
-                    key={state.phi}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="font-mono text-[#003d9b] font-bold text-lg"
-                  >
-                    {state.phi ? state.phi : '---'}
-                  </motion.span>
-                </AnimatePresence>
-              </div>
-              <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-                <span className="font-mono text-xs uppercase text-gray-500">Public Exp (e)</span>
-                <AnimatePresence mode="popLayout">
-                  <motion.span 
-                    key={state.e}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="font-mono text-[#003d9b] font-bold text-lg"
-                  >
-                    {state.e ? state.e : '---'}
-                  </motion.span>
-                </AnimatePresence>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-mono text-xs uppercase text-gray-500">Private Exp (d)</span>
-                <AnimatePresence mode="popLayout">
-                  <motion.span 
-                    key={state.d}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="font-mono text-green-600 font-bold text-lg"
-                  >
-                    {state.d ? state.d : '---'}
-                  </motion.span>
-                </AnimatePresence>
-              </div>
-            </div>
-            
-            {animStep >= 4 && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3"
-              >
-                <span className="material-symbols-outlined text-green-600 text-sm">lock_person</span>
-                <div>
-                  <p className="text-xs font-bold text-green-800">Keys Generated Successfully!</p>
-                  <p className="text-[10px] text-green-700 mt-1">Public Key: ({state.e}, {state.n}) <br/> Private Key: ({state.d}, {state.n})</p>
-                </div>
-              </motion.div>
             )}
           </div>
+        )}
+
+        {section === 1 && state.p && state.q && (
+          <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
+            <h3 className="text-lg font-bold">Вычисляем модуль n = p · q</h3>
+            <MathCard
+              title="Подстановка"
+              expression={`n = ${state.p} · ${state.q}`}
+              value={String(state.n)}
+              note="n публикуется как часть открытого ключа. Безопасность RSA держится на том, что обратное — факторизация n — вычислительно непосильна для больших простых."
+            />
+          </div>
+        )}
+
+        {section === 2 && state.phi !== null && (
+          <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
+            <h3 className="text-lg font-bold">Функция Эйлера φ(n) = (p−1)(q−1)</h3>
+            <MathCard
+              title="Подстановка"
+              expression={`φ(n) = (${state.p} − 1) · (${state.q} − 1) = ${state.p - 1n} · ${state.q - 1n}`}
+              value={String(state.phi)}
+              note="φ(n) — количество чисел меньше n, взаимно простых с n. Это и есть длина «цикла» по Эйлеру, она должна оставаться секретной."
+            />
+          </div>
+        )}
+
+        {section === 3 && eCandidates.length > 0 && (
+          <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
+            <h3 className="text-lg font-bold">Выбор открытой экспоненты e</h3>
+            <p className="text-sm text-gray-600">
+              Условие: gcd(e, φ) = 1. Проверяем кандидатов алгоритмом Евклида.
+            </p>
+            <div className="space-y-4">
+              {eCandidates.map(({ e, valid, trace }) => (
+                <div key={String(e)} className={`border rounded-lg p-4 ${state.e === e ? 'border-[#003d9b] bg-[#f1f3ff]' : valid ? 'border-green-200 bg-green-50/40' : 'border-gray-200 bg-gray-50'}`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="font-mono text-sm">
+                      <span className="font-bold">e = {String(e)}</span>
+                      <span className={`ml-3 px-2 py-0.5 text-[10px] rounded font-bold uppercase ${valid ? 'bg-green-600 text-white' : 'bg-red-100 text-red-700'}`}>
+                        {trace === null
+                          ? `e ≥ φ — не годится`
+                          : `gcd = ${String(trace.gcd)} ${valid ? '✓' : '✗'}`
+                        }
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => pickE(e)}
+                      disabled={!valid}
+                      className="px-3 py-1 text-xs font-bold bg-[#003d9b] text-white rounded disabled:bg-gray-300"
+                    >Выбрать</button>
+                  </div>
+                  {trace !== null && <EuclidTable rows={trace.rows} showQuotient />}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {section === 4 && state.e && state.d && eForwardTrace && eExtTrace && (
+          <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
+            <h3 className="text-lg font-bold">Секретная экспонента d = e⁻¹ mod φ</h3>
+            <p className="text-sm text-gray-600">
+              Используем расширенный алгоритм Евклида: решаем e·x + φ·y = 1, тогда d ≡ x (mod φ).
+            </p>
+            <div>
+              <h4 className="text-xs font-bold uppercase text-gray-500 mb-2">Прямой ход — деления</h4>
+              <EuclidTable rows={eForwardTrace.rows} />
+              <p className="text-[11px] text-gray-400 mt-1">Каждая строка: dividend = quotient · divisor + remainder.</p>
+            </div>
+            <div>
+              <h4 className="text-xs font-bold uppercase text-gray-500 mb-2">Обратная подстановка</h4>
+              <BackSubList steps={eExtTrace.backSub} />
+            </div>
+            <MathCard
+              tone="green"
+              title="Результат"
+              expression={`x = ${eExtTrace.x}, d ≡ x (mod φ)`}
+              value={`d = ${state.d}`}
+              note={`Проверка: e · d mod φ = ${state.e} · ${state.d} mod ${state.phi} = ${(state.e * state.d) % state.phi}.`}
+            />
+          </div>
+        )}
+
+        {section === 5 && ready && (
+          <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
+            <h3 className="text-lg font-bold">Сводка по ключам</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <MathCard tone="blue" title="Публичный ключ" expression={`(e, n) = (${state.e}, ${state.n})`} note="Можно давать кому угодно." />
+              <MathCard tone="green" title="Приватный ключ" expression={`(d, n) = (${state.d}, ${state.n})`} note="Храните в секрете вместе с p, q и φ(n)." />
+            </div>
+            <button onClick={nextStep} className="w-full py-3 bg-[#003d9b] text-white font-bold rounded-lg hover:bg-[#0052cc]">
+              К шифрованию →
+            </button>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center pt-4">
+          <button disabled={section === 0} onClick={() => setSection(s => s - 1)}
+            className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded disabled:opacity-30">‹ Назад</button>
+          <button
+            disabled={
+              section >= SECTIONS.length - 1 ||
+              (section === 0 && !state.p) ||
+              (section === 3 && !state.e)
+            }
+            onClick={() => setSection(s => s + 1)}
+            className="px-4 py-2 text-sm font-bold text-[#003d9b] hover:bg-blue-50 rounded disabled:opacity-30">Далее ›</button>
         </div>
       </div>
     </motion.div>
