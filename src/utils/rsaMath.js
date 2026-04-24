@@ -1,3 +1,7 @@
+// Pure BigInt RSA math. Every function is side-effect free and returns a trace
+// (array of step objects) alongside the numeric result so UI components can
+// render step-by-step educational animations.
+
 export function isqrt(n) {
   if (n < 0n) throw new Error('negative');
   if (n < 2n) return n;
@@ -44,6 +48,7 @@ function buildBackSub(a, b, table) {
   const divs = [];
   for (let i = 1; i < table.length; i++) {
     if (table[i].r === 0n) continue;
+    if (table[i].q === 0n) continue;
     const prev = table[i - 1];
     divs.push({
       dividend: prev.oldR,
@@ -52,17 +57,8 @@ function buildBackSub(a, b, table) {
       remainder: table[i].r,
     });
   }
-  const gcdIdx = divs.length - 1;
-  if (gcdIdx < 0) return [];
-  const lines = [];
-  let line = `${divs[gcdIdx].remainder} = ${divs[gcdIdx].dividend} − ${divs[gcdIdx].quotient}·${divs[gcdIdx].divisor}`;
-  lines.push(line);
-  for (let i = gcdIdx - 1; i >= 0; i--) {
-    const d = divs[i];
-    line += `\n    = ... (substitute ${d.remainder} = ${d.dividend} − ${d.quotient}·${d.divisor})`;
-    lines.push(line);
-  }
-  return lines;
+  // Return in reverse: gcd-producing step first, then each prior step to substitute
+  return divs.slice().reverse();
 }
 
 export function modInverse(e, phi) {

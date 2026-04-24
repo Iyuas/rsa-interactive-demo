@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isPrime, gcdTrace, extGcdTrace, modInverse, pickECandidates, modPowTrace } from './rsaMath.js';
+import { isPrime, gcdTrace, extGcdTrace, modInverse, pickECandidates, modPowTrace, isqrt } from './rsaMath.js';
 
 describe('isPrime', () => {
   it('flags 2, 3, 61 as prime', () => {
@@ -67,10 +67,29 @@ describe('extGcdTrace', () => {
     }
   });
 
-  it('produces back-substitution strings that terminate in the gcd', () => {
+  it('produces back-substitution step objects ending in gcd expression', () => {
     const { backSub } = extGcdTrace(17n, 3120n);
     expect(backSub.length).toBeGreaterThan(0);
-    expect(backSub.at(-1)).toMatch(/1\s*=/);
+    // First entry expresses the gcd: remainder === gcd
+    expect(backSub[0].remainder).toBe(1n);
+    // Each entry has structured fields
+    for (const step of backSub) {
+      expect(step).toHaveProperty('dividend');
+      expect(step).toHaveProperty('divisor');
+      expect(step).toHaveProperty('quotient');
+      expect(step).toHaveProperty('remainder');
+      // quotient is never the degenerate 0
+      expect(step.quotient).not.toBe(0n);
+      // identity: dividend === quotient*divisor + remainder
+      expect(step.dividend).toBe(step.quotient * step.divisor + step.remainder);
+    }
+  });
+
+  it('no backSub step has a zero quotient (no degenerate padding rows)', () => {
+    const { backSub } = extGcdTrace(17n, 3120n);
+    for (const step of backSub) {
+      expect(step.quotient).not.toBe(0n);
+    }
   });
 });
 
@@ -122,5 +141,22 @@ describe('modPowTrace', () => {
 
   it('returns 0 when modulus is 1', () => {
     expect(modPowTrace(5n, 3n, 1n).result).toBe(0n);
+  });
+});
+
+describe('isqrt', () => {
+  it('handles 0 and 1', () => {
+    expect(isqrt(0n)).toBe(0n);
+    expect(isqrt(1n)).toBe(1n);
+  });
+  it('returns exact sqrt for perfect squares', () => {
+    expect(isqrt(4n)).toBe(2n);
+    expect(isqrt(25n)).toBe(5n);
+    expect(isqrt(10000n)).toBe(100n);
+  });
+  it('returns floor for non-perfect squares', () => {
+    expect(isqrt(2n)).toBe(1n);
+    expect(isqrt(15n)).toBe(3n);
+    expect(isqrt(99n)).toBe(9n);
   });
 });
