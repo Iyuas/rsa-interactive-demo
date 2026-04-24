@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isPrime, gcdTrace } from './rsaMath.js';
+import { isPrime, gcdTrace, extGcdTrace, modInverse } from './rsaMath.js';
 
 describe('isPrime', () => {
   it('flags 2, 3, 61 as prime', () => {
@@ -47,5 +47,39 @@ describe('gcdTrace', () => {
 
   it('returns gcd(12, 18) = 6', () => {
     expect(gcdTrace(18n, 12n).gcd).toBe(6n);
+  });
+});
+
+describe('extGcdTrace', () => {
+  it('solves 17x + 3120y = 1 with x = -367, y = 2', () => {
+    const { gcd, x, y } = extGcdTrace(17n, 3120n);
+    expect(gcd).toBe(1n);
+    expect(x).toBe(-367n);
+    expect(y).toBe(2n);
+    expect(17n * x + 3120n * y).toBe(1n);
+  });
+
+  it('emits a running table with s,t columns', () => {
+    const { table } = extGcdTrace(17n, 3120n);
+    expect(table[0]).toMatchObject({ oldR: 17n, r: 3120n });
+    for (const row of table) {
+      expect(row.oldS * 17n + row.oldT * 3120n).toBe(row.oldR);
+    }
+  });
+
+  it('produces back-substitution strings that terminate in the gcd', () => {
+    const { backSub } = extGcdTrace(17n, 3120n);
+    expect(backSub.length).toBeGreaterThan(0);
+    expect(backSub.at(-1)).toMatch(/1\s*=/);
+  });
+});
+
+describe('modInverse', () => {
+  it('computes 17^-1 mod 3120 = 2753', () => {
+    expect(modInverse(17n, 3120n)).toBe(2753n);
+  });
+
+  it('returns null when gcd != 1', () => {
+    expect(modInverse(6n, 9n)).toBe(null);
   });
 });
