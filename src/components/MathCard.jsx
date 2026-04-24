@@ -1,5 +1,7 @@
 import { motion } from 'framer-motion';
 
+const MotionDiv = motion.div;
+
 export default function MathCard({ title, expression, value, note, tone = 'blue' }) {
   const toneClasses = {
     blue: 'border-[#003d9b] bg-[#f1f3ff] text-[#003d9b]',
@@ -8,7 +10,7 @@ export default function MathCard({ title, expression, value, note, tone = 'blue'
     gray: 'border-gray-300 bg-gray-50 text-gray-700',
   };
   return (
-    <motion.div
+    <MotionDiv
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
@@ -20,6 +22,6 @@ export default function MathCard({ title, expression, value, note, tone = 'blue'
         <div className="font-mono text-2xl font-black">{String(value)}</div>
       )}
       {note && <p className="text-xs text-gray-600 mt-2 leading-relaxed">{note}</p>}
-    </motion.div>
+    </MotionDiv>
   );
 }
