@@ -96,3 +96,25 @@ export function pickECandidates(phi, candidates = DEFAULT_E_CANDIDATES) {
     return { e, trace, valid: trace.gcd === 1n };
   });
 }
+
+export function modPowTrace(base, exp, n) {
+  if (n === 1n) return { result: 0n, binary: exp.toString(2), steps: [] };
+  base = ((base % n) + n) % n;
+
+  const binary = exp.toString(2);
+  const steps = [];
+  let result = 1n;
+
+  for (let i = 0; i < binary.length; i++) {
+    const bit = binary[i];
+    const before = result;
+    result = (result * result) % n;
+    steps.push({ bitIndex: i, bit, op: 'square', before, after: result });
+    if (bit === '1') {
+      const beforeMul = result;
+      result = (result * base) % n;
+      steps.push({ bitIndex: i, bit, op: 'multiply', before: beforeMul, after: result, base });
+    }
+  }
+  return { result, binary, steps };
+}

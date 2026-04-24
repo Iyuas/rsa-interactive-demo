@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isPrime, gcdTrace, extGcdTrace, modInverse, pickECandidates } from './rsaMath.js';
+import { isPrime, gcdTrace, extGcdTrace, modInverse, pickECandidates, modPowTrace } from './rsaMath.js';
 
 describe('isPrime', () => {
   it('flags 2, 3, 61 as prime', () => {
@@ -97,5 +97,30 @@ describe('pickECandidates', () => {
   it('always includes 65537 for completeness', () => {
     const cands = pickECandidates(3120n);
     expect(cands.some(c => c.e === 65537n)).toBe(true);
+  });
+});
+
+describe('modPowTrace', () => {
+  it('computes 65^17 mod 3233 = 2790', () => {
+    const { result } = modPowTrace(65n, 17n, 3233n);
+    expect(result).toBe(2790n);
+  });
+
+  it('decryption inverse: (65^17 mod 3233)^2753 mod 3233 = 65', () => {
+    const c = modPowTrace(65n, 17n, 3233n).result;
+    expect(modPowTrace(c, 2753n, 3233n).result).toBe(65n);
+  });
+
+  it('emits one square op per bit and one multiply per 1-bit', () => {
+    const { steps, binary } = modPowTrace(65n, 17n, 3233n);
+    expect(binary).toBe('10001');
+    const squares = steps.filter(s => s.op === 'square').length;
+    const muls = steps.filter(s => s.op === 'multiply').length;
+    expect(squares).toBe(5);
+    expect(muls).toBe(2);
+  });
+
+  it('returns 0 when modulus is 1', () => {
+    expect(modPowTrace(5n, 3n, 1n).result).toBe(0n);
   });
 });
