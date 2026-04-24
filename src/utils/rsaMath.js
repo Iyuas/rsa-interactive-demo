@@ -7,6 +7,18 @@ export function isqrt(n) {
   return x;
 }
 
+export function gcdTrace(a, b) {
+  let [x, y] = a >= b ? [a, b] : [b, a];
+  const rows = [];
+  while (y !== 0n) {
+    const q = x / y;
+    const r = x % y;
+    rows.push({ dividend: x, divisor: y, quotient: q, remainder: r });
+    [x, y] = [y, r];
+  }
+  return { gcd: x, rows };
+}
+
 export function isPrime(n) {
   const checks = [];
   if (n < 2n) return { isPrime: false, checks, reason: 'less than 2' };
