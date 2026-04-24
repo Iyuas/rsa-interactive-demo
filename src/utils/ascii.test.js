@@ -22,7 +22,7 @@ describe('encodeBlocks', () => {
     expect(decodeBlocks(blocks)).toBe('HELLO');
   });
 
-  it('rejects characters with code > 255', () => {
+  it('rejects characters outside 7-bit ASCII (code > 127)', () => {
     expect(() => encodeBlocks('é', 3233n)).toThrow(/ASCII/);
   });
 });

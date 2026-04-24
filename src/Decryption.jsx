@@ -13,9 +13,13 @@ export default function Decryption({ state, prevStep }) {
     Array(state.blocks.length).fill(null)
   );
 
+  // Only compute traces once every block has a cipher — prevents crashes when
+  // the user jumps directly to step 3 via the sidebar before finishing encryption.
+  const ready = state.blocks.length > 0 && state.blocks.every(b => b.cipher !== null);
+
   const traces = useMemo(
-    () => state.blocks.map(b => modPowTrace(b.cipher, state.d, state.n)),
-    [state.blocks, state.d, state.n],
+    () => ready ? state.blocks.map(b => modPowTrace(b.cipher, state.d, state.n)) : [],
+    [ready, state.blocks, state.d, state.n],
   );
 
   const commitBlock = (i) => {
@@ -32,6 +36,20 @@ export default function Decryption({ state, prevStep }) {
     }));
     return decodeBlocks(rebuilt);
   }, [allDone, state.blocks, decrypted]);
+
+  if (!ready) {
+    return (
+      <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}>
+        <h1 className="text-3xl font-bold text-[#041b3c] mb-4">Расшифрование</h1>
+        <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm">
+          <p className="text-gray-600">
+            Сначала нужно сгенерировать ключи и зашифровать сообщение. Вернитесь к предыдущим шагам.
+          </p>
+          <button onClick={prevStep} className="mt-4 text-[#003d9b] font-bold">‹ Назад к шифрованию</button>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}>

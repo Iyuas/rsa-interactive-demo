@@ -216,7 +216,11 @@ export default function KeyGeneration({ state, setState, nextStep }) {
           <button disabled={section === 0} onClick={() => setSection(s => s - 1)}
             className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded disabled:opacity-30">‹ Назад</button>
           <button
-            disabled={section >= SECTIONS.length - 1 || (section === 3 && !state.e)}
+            disabled={
+              section >= SECTIONS.length - 1 ||
+              (section === 0 && !state.p) ||
+              (section === 3 && !state.e)
+            }
             onClick={() => setSection(s => s + 1)}
             className="px-4 py-2 text-sm font-bold text-[#003d9b] hover:bg-blue-50 rounded disabled:opacity-30">Далее ›</button>
         </div>
