@@ -159,4 +159,7 @@ describe('isqrt', () => {
     expect(isqrt(15n)).toBe(3n);
     expect(isqrt(99n)).toBe(9n);
   });
+  it('converges on large BigInts', () => {
+    expect(isqrt(10n ** 20n)).toBe(10n ** 10n);
+  });
 });

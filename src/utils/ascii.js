@@ -1,5 +1,5 @@
 // Plaintext ↔ BigInt block helpers. Each character is encoded as a 3-digit
-// decimal ASCII code (000–255) so decoding is unambiguous. Blocks are packed
+// decimal ASCII code (000–127) so decoding is unambiguous. Blocks are packed
 // greedily to fit within n (the RSA modulus), so every block value is strictly
 // less than n and can round-trip through modPow.
 

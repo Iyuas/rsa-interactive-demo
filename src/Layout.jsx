@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 export default function Layout({ children, currentStep, setCurrentStep }) {
   const steps = [
     { id: 1, name: 'Key Generation', icon: 'key' },
@@ -16,7 +14,7 @@ export default function Layout({ children, currentStep, setCurrentStep }) {
           <h1 className="text-lg font-bold tracking-tighter text-[#041b3c]">RSA Scholar</h1>
         </div>
         <div className="flex items-center gap-4">
-          <div className="relative flex items-center hidden md:flex">
+          <div className="relative items-center hidden md:flex">
             <span className="material-symbols-outlined absolute left-3 text-gray-400 text-sm">search</span>
             <input 
               type="text" 
