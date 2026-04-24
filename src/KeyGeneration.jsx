@@ -50,7 +50,8 @@ export default function KeyGeneration({ state, setState, nextStep }) {
     const n = p * q;
     const phi = (p - 1n) * (q - 1n);
     setState(s => ({ ...s, presetId, p, q, n, phi, e: null, d: null, blocks: [] }));
-    setSection(1);
+    // Stay on section 0 so the user can watch the trial-division animation run;
+    // they advance manually with the "Далее" pill or bottom button.
   };
 
   const pickE = (e) => {
