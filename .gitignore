@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright MCP runtime cache (snapshots, console logs)
+.playwright-mcp/
+
+# Root-level screenshots from local validation runs
+/keygen-*.png
+/enc-*.png
+/dec-*.png
