@@ -1,87 +1,194 @@
-export default function Layout({ children, currentStep, setCurrentStep }) {
+export default function Layout({ children, currentStep, setCurrentStep, darkMode, setDarkMode }) {
   const steps = [
     { id: 1, name: 'Key Generation', icon: 'key' },
     { id: 2, name: 'Encryption', icon: 'lock' },
     { id: 3, name: 'Decryption', icon: 'lock_open' },
   ];
 
+  // Theme tokens
+  const t = darkMode ? {
+    bg: '#0d1117',
+    surface: '#161b22',
+    surfaceAlt: '#1c2333',
+    border: '#30363d',
+    text: '#e6edf3',
+    textMuted: '#8b949e',
+    primary: '#58a6ff',
+    primaryBg: '#1f3a5f',
+    accent: '#3fb950',
+    header: '#161b22',
+    nav: '#161b22',
+    badge: '#1f3a5f',
+    badgeText: '#58a6ff',
+  } : {
+    bg: '#f9f9ff',
+    surface: '#ffffff',
+    surfaceAlt: '#f1f3ff',
+    border: '#c3c6d6',
+    text: '#041b3c',
+    textMuted: '#6b7280',
+    primary: '#003d9b',
+    primaryBg: '#e8eeff',
+    accent: '#16a34a',
+    header: '#ffffff',
+    nav: '#f1f3ff',
+    badge: '#e8eeff',
+    badgeText: '#003d9b',
+  };
+
   return (
-    <div className="min-h-screen bg-[#f9f9ff] text-[#041b3c] font-sans">
-      {/* TopAppBar Shell */}
-      <header className="bg-white border-b border-[#c3c6d6] flex justify-between items-center h-14 px-6 w-full fixed top-0 z-50">
-        <div className="flex items-center gap-3">
-          <span aria-hidden="true" className="material-symbols-outlined text-[#003d9b]">terminal</span>
-          <h1 className="text-lg font-bold tracking-tighter text-[#041b3c]">RSA Scholar</h1>
+    <div style={{ minHeight: '100vh', backgroundColor: t.bg, color: t.text, fontFamily: 'Inter, sans-serif', transition: 'background-color 0.3s, color 0.3s' }}>
+      {/* TopAppBar */}
+      <header style={{
+        backgroundColor: t.header,
+        borderBottom: `1px solid ${t.border}`,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        height: '3.5rem',
+        padding: '0 1.5rem',
+        position: 'fixed',
+        top: 0,
+        width: '100%',
+        zIndex: 50,
+        boxSizing: 'border-box',
+        transition: 'background-color 0.3s',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <span className="material-symbols-outlined" style={{ color: t.primary }}>terminal</span>
+          <h1 style={{ fontSize: '1.125rem', fontWeight: 700, letterSpacing: '-0.03em', color: t.text, margin: 0 }}>RSA Scholar</h1>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="relative items-center hidden md:flex">
-            <span aria-hidden="true" className="material-symbols-outlined absolute left-3 text-gray-400 text-sm">search</span>
-            <input 
-              type="text" 
-              placeholder="Search modules..." 
-              className="bg-gray-50 border border-[#c3c6d6] rounded-lg pl-9 pr-4 py-1.5 text-xs w-64 focus:ring-1 focus:ring-[#003d9b] outline-none" 
-            />
-          </div>
-          <div className="flex gap-2">
-            <button className="p-2 hover:bg-gray-50 rounded-lg"><span aria-hidden="true" className="material-symbols-outlined text-gray-600">help</span></button>
-            <button className="p-2 hover:bg-gray-50 rounded-lg"><span aria-hidden="true" className="material-symbols-outlined text-gray-600">settings</span></button>
-          </div>
-          <div className="w-8 h-8 rounded-full bg-gray-300 border border-gray-200"></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {/* Theme toggle */}
+          <button
+            onClick={() => setDarkMode(d => !d)}
+            title={darkMode ? 'Светлая тема' : 'Научная тёмная тема'}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.4rem 0.75rem',
+              borderRadius: '999px',
+              border: `1px solid ${t.border}`,
+              backgroundColor: darkMode ? t.primaryBg : '#f3f4f6',
+              color: t.text,
+              cursor: 'pointer',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              transition: 'all 0.2s',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>
+              {darkMode ? 'light_mode' : 'dark_mode'}
+            </span>
+            {darkMode ? 'Светлая' : 'Научная'}
+          </button>
+          <button style={{ padding: '0.5rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'transparent', cursor: 'pointer' }}>
+            <span className="material-symbols-outlined" style={{ color: t.textMuted }}>help</span>
+          </button>
+          <button style={{ padding: '0.5rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'transparent', cursor: 'pointer' }}>
+            <span className="material-symbols-outlined" style={{ color: t.textMuted }}>settings</span>
+          </button>
+          <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', backgroundColor: t.border }}></div>
         </div>
       </header>
 
-      {/* SideNavBar Shell */}
-      <nav className="flex flex-col fixed left-0 top-14 h-[calc(100vh-3.5rem)] z-40 bg-[#f1f3ff] border-r border-[#c3c6d6] w-64">
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-[#003d9b] rounded-lg flex items-center justify-center text-white font-black">RS</div>
+      {/* SideNavBar */}
+      <nav style={{
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'fixed',
+        left: 0,
+        top: '3.5rem',
+        height: 'calc(100vh - 3.5rem)',
+        zIndex: 40,
+        backgroundColor: t.nav,
+        borderRight: `1px solid ${t.border}`,
+        width: '16rem',
+        transition: 'background-color 0.3s',
+      }}>
+        <div style={{ padding: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+            <div style={{ width: '2.5rem', height: '2.5rem', backgroundColor: t.primary, borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 900, fontSize: '0.875rem' }}>RS</div>
             <div>
-              <p className="text-[#003d9b] font-black text-xs uppercase tracking-wider">RSA Modules</p>
-              <p className="text-gray-500 text-[10px] font-medium uppercase tracking-widest">Precision Learning</p>
+              <p style={{ color: t.primary, fontWeight: 900, fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>RSA Modules</p>
+              <p style={{ color: t.textMuted, fontSize: '0.625rem', fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.15em', margin: 0 }}>Precision Learning</p>
             </div>
           </div>
-          <div className="space-y-1">
-            <p className="text-[11px] font-bold text-gray-400 mb-2 px-3 uppercase tracking-widest">Main Pipeline</p>
-            {steps.map(step => (
-              <button 
-                key={step.id}
-                onClick={() => setCurrentStep(step.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${currentStep === step.id ? 'bg-blue-50 text-[#003d9b] border-r-2 border-[#003d9b]' : 'text-gray-500 hover:bg-gray-100'}`}
-              >
-                <span aria-hidden="true" className="material-symbols-outlined text-lg">{step.icon}</span>
-                <span className="text-xs font-medium uppercase tracking-wider">{step.name}</span>
-                {currentStep > step.id && <span className="ml-auto material-symbols-outlined text-sm text-green-500">check_circle</span>}
-              </button>
-            ))}
+          <div style={{ marginBottom: '0.5rem' }}>
+            <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: t.textMuted, marginBottom: '0.5rem', padding: '0 0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Main Pipeline</p>
+            {steps.map(step => {
+              const isActive = currentStep === step.id;
+              const isDone = currentStep > step.id;
+              return (
+                <button
+                  key={step.id}
+                  onClick={() => setCurrentStep(step.id)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    padding: '0.625rem 0.75rem',
+                    borderRadius: '0.5rem',
+                    border: 'none',
+                    borderRight: isActive ? `2px solid ${t.primary}` : 'none',
+                    backgroundColor: isActive ? t.primaryBg : 'transparent',
+                    color: isActive ? t.primary : t.textMuted,
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    marginBottom: '0.125rem',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '1.125rem' }}>{step.icon}</span>
+                  <span style={{ fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{step.name}</span>
+                  {isDone && <span className="material-symbols-outlined" style={{ marginLeft: 'auto', fontSize: '0.875rem', color: t.accent }}>check_circle</span>}
+                </button>
+              );
+            })}
           </div>
-          <div className="mt-10 space-y-1">
-            <p className="text-[11px] font-bold text-gray-400 mb-2 px-3 uppercase tracking-widest">Reference</p>
-            <a href="#" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all">
-              <span aria-hidden="true" className="material-symbols-outlined text-lg">menu_book</span>
-              <span className="text-xs font-medium uppercase tracking-wider">Theory</span>
+          <div style={{ marginTop: '2.5rem' }}>
+            <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: t.textMuted, marginBottom: '0.5rem', padding: '0 0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Reference</p>
+            <a href="#" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 0.75rem', borderRadius: '0.5rem', color: t.textMuted, textDecoration: 'none', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: '1.125rem' }}>menu_book</span>
+              Theory
             </a>
           </div>
         </div>
-        <div className="mt-auto p-6 border-t border-[#c3c6d6]">
-          <div className="w-full bg-[#0052cc] text-white py-2.5 rounded text-xs font-bold uppercase tracking-widest text-center shadow-md">
-              Progress: {Math.round((currentStep / 3) * 100)}%
+        <div style={{ marginTop: 'auto', padding: '1.5rem', borderTop: `1px solid ${t.border}` }}>
+          <div style={{ width: '100%', backgroundColor: t.primary, color: '#fff', padding: '0.625rem', borderRadius: '0.375rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'center' }}>
+            Progress: {Math.round((currentStep / 3) * 100)}%
           </div>
         </div>
       </nav>
 
-      {/* Main Content Canvas */}
-      <main className="ml-64 mt-14 p-6 min-h-[calc(100vh-3.5rem)] relative overflow-hidden">
-        {/* Background blobs */}
-        <div className="fixed top-20 right-10 w-96 h-96 bg-blue-400/5 blur-[120px] -z-10 rounded-full"></div>
-        <div className="fixed bottom-10 left-80 w-64 h-64 bg-gray-400/5 blur-[100px] -z-10 rounded-full"></div>
-        <div className="max-w-6xl mx-auto">
+      {/* Main Content */}
+      <main style={{ marginLeft: '16rem', marginTop: '3.5rem', padding: '1.5rem', minHeight: 'calc(100vh - 3.5rem)', backgroundColor: t.bg, transition: 'background-color 0.3s' }}>
+        <div style={{ maxWidth: '72rem', margin: '0 auto' }}>
+          {/* Inject theme tokens as CSS vars for child components */}
+          <style>{`
+            :root {
+              --t-bg: ${t.bg};
+              --t-surface: ${t.surface};
+              --t-surface-alt: ${t.surfaceAlt};
+              --t-border: ${t.border};
+              --t-text: ${t.text};
+              --t-text-muted: ${t.textMuted};
+              --t-primary: ${t.primary};
+              --t-primary-bg: ${t.primaryBg};
+              --t-accent: ${t.accent};
+            }
+          `}</style>
           {children}
         </div>
       </main>
-      
-      <div className="fixed bottom-6 right-6">
-        <button className="w-14 h-14 bg-[#003d9b] text-white rounded-full shadow-lg flex items-center justify-center hover:scale-105 transition-transform">
-          <span aria-hidden="true" className="material-symbols-outlined">chat_bubble</span>
+
+      <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem' }}>
+        <button style={{ width: '3.5rem', height: '3.5rem', backgroundColor: t.primary, color: '#fff', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
+          <span className="material-symbols-outlined">chat_bubble</span>
         </button>
       </div>
     </div>

@@ -24,43 +24,46 @@ export default function Stepper({ total, index, onIndex, renderStep, label = 'St
 
   if (total === 0) return null;
 
+  const btnBase = {
+    padding: '0.375rem 0.75rem',
+    borderRadius: '0.375rem',
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    cursor: 'pointer',
+    border: '1px solid var(--t-border)',
+    background: 'var(--t-surface)',
+    color: 'var(--t-text)',
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--t-text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           {label} {index + 1} / {total}
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => onIndex(i => Math.max(0, i - 1))}
-            disabled={index === 0}
-            className="px-3 py-1.5 rounded border border-[#c3c6d6] text-xs font-bold disabled:opacity-40 hover:bg-gray-50"
-          >‹ Назад</button>
-          <button
-            onClick={() => setPlaying(p => !p)}
-            className="px-3 py-1.5 rounded bg-[#003d9b] text-white text-xs font-bold hover:bg-[#0052cc]"
-          >{playing ? '⏸ Пауза' : '▶ Авто'}</button>
-          <button
-            onClick={() => onIndex(i => Math.min(total - 1, i + 1))}
-            disabled={index >= total - 1}
-            className="px-3 py-1.5 rounded border border-[#c3c6d6] text-xs font-bold disabled:opacity-40 hover:bg-gray-50"
-          >Далее ›</button>
-          <div className="flex items-center gap-0.5 ml-2 border border-[#c3c6d6] rounded overflow-hidden">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button onClick={() => onIndex(i => Math.max(0, i - 1))} disabled={index === 0}
+            style={{ ...btnBase, opacity: index === 0 ? 0.4 : 1 }}>‹ Назад</button>
+          <button onClick={() => setPlaying(p => !p)}
+            style={{ ...btnBase, background: 'var(--t-primary)', color: '#fff', border: 'none' }}>
+            {playing ? '⏸ Пауза' : '▶ Авто'}
+          </button>
+          <button onClick={() => onIndex(i => Math.min(total - 1, i + 1))} disabled={index >= total - 1}
+            style={{ ...btnBase, opacity: index >= total - 1 ? 0.4 : 1 }}>Далее ›</button>
+          <div style={{ display: 'flex', border: '1px solid var(--t-border)', borderRadius: '0.375rem', overflow: 'hidden', marginLeft: '0.5rem' }}>
             {SPEEDS.map((s, i) => (
-              <button
-                key={s.label}
-                onClick={() => setSpeedIdx(i)}
-                className={`px-2 py-1 text-[10px] font-bold ${i === speedIdx ? 'bg-[#003d9b] text-white' : 'text-gray-600 hover:bg-gray-50'}`}
-              >{s.label}</button>
+              <button key={s.label} onClick={() => setSpeedIdx(i)}
+                style={{ padding: '0.25rem 0.5rem', fontSize: '0.625rem', fontWeight: 700, cursor: 'pointer', border: 'none',
+                  background: i === speedIdx ? 'var(--t-primary)' : 'var(--t-surface)',
+                  color: i === speedIdx ? '#fff' : 'var(--t-text-muted)' }}>
+                {s.label}
+              </button>
             ))}
           </div>
         </div>
       </div>
-      <div className="w-full bg-gray-100 rounded-full h-1 overflow-hidden">
-        <div
-          className="bg-[#003d9b] h-full transition-all duration-300"
-          style={{ width: `${((index + 1) / total) * 100}%` }}
-        />
+      <div style={{ width: '100%', background: 'var(--t-border)', borderRadius: '999px', height: '4px', overflow: 'hidden' }}>
+        <div style={{ background: 'var(--t-primary)', height: '100%', transition: 'width 0.3s', width: `${((index + 1) / total) * 100}%` }} />
       </div>
       <div>{renderStep(index)}</div>
     </div>

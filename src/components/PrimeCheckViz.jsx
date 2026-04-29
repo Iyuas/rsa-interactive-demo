@@ -11,8 +11,8 @@ export default function PrimeCheckViz({ n, trace, label }) {
   }
 
   return (
-    <div className="bg-white border border-[#c3c6d6] rounded-xl p-4 shadow-sm">
-      <div className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3">
+    <div style={{ background: 'var(--t-surface)', border: '1px solid var(--t-border)', borderRadius: '0.75rem', padding: '1rem' }}>
+      <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--t-text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>
         {label}: Trial division для n = {String(n)}
       </div>
       <Stepper
@@ -39,10 +39,10 @@ export default function PrimeCheckViz({ n, trace, label }) {
           );
         }}
       />
-      <div className="mt-3 text-xs font-bold text-center">
+      <div style={{ marginTop: '0.75rem', fontSize: '0.75rem', fontWeight: 700, textAlign: 'center' }}>
         Итог: {trace.isPrime
-          ? <span className="text-green-600">{String(n)} — простое ✓</span>
-          : <span className="text-red-600">{String(n)} — составное ✗</span>}
+          ? <span style={{ color: '#16a34a' }}>{String(n)} — простое ✓</span>
+          : <span style={{ color: '#dc2626' }}>{String(n)} — составное ✗</span>}
       </div>
     </div>
   );

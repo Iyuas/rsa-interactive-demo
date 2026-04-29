@@ -16,9 +16,18 @@ const SECTIONS = [
   { id: 'verify',   label: '6. Проверка' },
 ];
 
-// Trial-division visualization becomes impractical for primes above this threshold
-// (sqrt(10000) = 100 check rows; anything larger freezes the UI while isPrime runs).
 const PRIME_VIZ_THRESHOLD = 10000n;
+
+const card = {
+  background: 'var(--t-surface)',
+  border: '1px solid var(--t-border)',
+  borderRadius: '0.75rem',
+  padding: '1.5rem',
+  boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1rem',
+};
 
 export default function KeyGeneration({ state, setState, nextStep }) {
   const [section, setSection] = useState(0);
@@ -50,8 +59,6 @@ export default function KeyGeneration({ state, setState, nextStep }) {
     const n = p * q;
     const phi = (p - 1n) * (q - 1n);
     setState(s => ({ ...s, presetId, p, q, n, phi, e: null, d: null, blocks: [] }));
-    // Stay on section 0 so the user can watch the trial-division animation run;
-    // they advance manually with the "Далее" pill or bottom button.
   };
 
   const pickE = (e) => {
@@ -63,49 +70,57 @@ export default function KeyGeneration({ state, setState, nextStep }) {
   const ready = state.p && state.q && state.n && state.phi && state.e && state.d;
   const bigPrimes = state.p !== null && state.p > PRIME_VIZ_THRESHOLD;
 
+  const primary = 'var(--t-primary)';
+  const textColor = 'var(--t-text)';
+  const muted = 'var(--t-text-muted)';
+  const border = 'var(--t-border)';
+  const primaryBg = 'var(--t-primary-bg)';
+  const surfaceAlt = 'var(--t-surface-alt)';
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold text-[#041b3c] mb-2">Генерация ключей RSA</h2>
-        <p className="text-gray-600 max-w-2xl">
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: textColor, marginBottom: '0.5rem', marginTop: 0 }}>Генерация ключей RSA</h2>
+        <p style={{ color: muted, maxWidth: '42rem', margin: 0 }}>
           Шаг 1 из 3. Смотрим, как из двух простых чисел выводятся все части публичного и секретного ключа.
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
+      {/* Section pills */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem' }}>
         {SECTIONS.map((s, i) => {
           const done = i < section;
           const active = i === section;
           return (
-            <button key={s.id} onClick={() => setSection(i)}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                active ? 'bg-[#003d9b] text-white' :
-                done ? 'bg-green-50 text-green-700 border border-green-200' :
-                'bg-gray-100 text-gray-400'
-              }`}
-            >{s.label}</button>
+            <button key={s.id} onClick={() => setSection(i)} style={{
+              padding: '0.375rem 0.75rem',
+              borderRadius: '999px',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              border: `1px solid ${active ? primary : done ? '#22c55e' : border}`,
+              background: active ? primary : done ? '#f0fdf4' : surfaceAlt,
+              color: active ? '#fff' : done ? '#15803d' : muted,
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}>{s.label}</button>
           );
         })}
       </div>
 
-      <div className="space-y-6">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {section === 0 && (
-          <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm">
-            <h3 className="text-lg font-bold mb-1">Выберите простые p и q</h3>
-            <p className="text-sm text-gray-600 mb-4">
+          <div style={card}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Выберите простые p и q</h3>
+            <p style={{ fontSize: '0.875rem', color: muted, margin: 0 }}>
               RSA полагается на то, что перемножить два простых легко, а разложить n обратно — нет.
             </p>
             <PresetPicker presetId={state.presetId} onApply={applyPrimes} />
             {state.p !== null && state.q !== null && (
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 {bigPrimes ? (
                   <>
-                    <MathCard tone="green" title="p — большое простое"
-                      expression={`p = ${state.p}`}
-                      note="Простота проверена заранее (trial division на √p занял бы тысячи шагов — пропускаем для наглядности)." />
-                    <MathCard tone="green" title="q — большое простое"
-                      expression={`q = ${state.q}`}
-                      note="Для Real-пресета демонстрируем, что RSA работает и на числах уровня 2³¹." />
+                    <MathCard tone="green" title="p — большое простое" expression={`p = ${state.p}`} note="Простота проверена заранее." />
+                    <MathCard tone="green" title="q — большое простое" expression={`q = ${state.q}`} note="Для Real-пресета демонстрируем, что RSA работает и на числах уровня 2³¹." />
                   </>
                 ) : (
                   <>
@@ -119,53 +134,53 @@ export default function KeyGeneration({ state, setState, nextStep }) {
         )}
 
         {section === 1 && state.p && state.q && (
-          <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
-            <h3 className="text-lg font-bold">Вычисляем модуль n = p · q</h3>
-            <MathCard
-              title="Подстановка"
-              expression={`n = ${state.p} · ${state.q}`}
-              value={String(state.n)}
-              note="n публикуется как часть открытого ключа. Безопасность RSA держится на том, что обратное — факторизация n — вычислительно непосильна для больших простых."
-            />
+          <div style={card}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Вычисляем модуль n = p · q</h3>
+            <MathCard title="Подстановка" expression={`n = ${state.p} · ${state.q}`} value={String(state.n)}
+              note="n публикуется как часть открытого ключа. Безопасность RSA держится на том, что обратное — факторизация n — вычислительно непосильна для больших простых." />
           </div>
         )}
 
         {section === 2 && state.phi !== null && (
-          <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
-            <h3 className="text-lg font-bold">Функция Эйлера φ(n) = (p−1)(q−1)</h3>
-            <MathCard
-              title="Подстановка"
+          <div style={card}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Функция Эйлера φ(n) = (p−1)(q−1)</h3>
+            <MathCard title="Подстановка"
               expression={`φ(n) = (${state.p} − 1) · (${state.q} − 1) = ${state.p - 1n} · ${state.q - 1n}`}
               value={String(state.phi)}
-              note="φ(n) — количество чисел меньше n, взаимно простых с n. Это и есть длина «цикла» по Эйлеру, она должна оставаться секретной."
-            />
+              note="φ(n) — количество чисел меньше n, взаимно простых с n. Это и есть длина «цикла» по Эйлеру, она должна оставаться секретной." />
           </div>
         )}
 
         {section === 3 && eCandidates.length > 0 && (
-          <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
-            <h3 className="text-lg font-bold">Выбор открытой экспоненты e</h3>
-            <p className="text-sm text-gray-600">
+          <div style={card}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Выбор открытой экспоненты e</h3>
+            <p style={{ fontSize: '0.875rem', color: muted, margin: 0 }}>
               Условие: gcd(e, φ) = 1. Проверяем кандидатов алгоритмом Евклида.
             </p>
-            <div className="space-y-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {eCandidates.map(({ e, valid, trace }) => (
-                <div key={String(e)} className={`border rounded-lg p-4 ${state.e === e ? 'border-[#003d9b] bg-[#f1f3ff]' : valid ? 'border-green-200 bg-green-50/40' : 'border-gray-200 bg-gray-50'}`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="font-mono text-sm">
-                      <span className="font-bold">e = {String(e)}</span>
-                      <span className={`ml-3 px-2 py-0.5 text-[10px] rounded font-bold uppercase ${valid ? 'bg-green-600 text-white' : 'bg-red-100 text-red-700'}`}>
-                        {trace === null
-                          ? `e ≥ φ — не годится`
-                          : `gcd = ${String(trace.gcd)} ${valid ? '✓' : '✗'}`
-                        }
+                <div key={String(e)} style={{
+                  border: `1px solid ${state.e === e ? primary : valid ? '#22c55e' : border}`,
+                  borderRadius: '0.5rem',
+                  padding: '1rem',
+                  background: state.e === e ? primaryBg : valid ? '#f0fdf4' : surfaceAlt,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                    <div style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>
+                      <span style={{ fontWeight: 700, color: textColor }}>e = {String(e)}</span>
+                      <span style={{
+                        marginLeft: '0.75rem', padding: '0.1rem 0.5rem',
+                        fontSize: '0.625rem', borderRadius: '0.25rem', fontWeight: 700, textTransform: 'uppercase',
+                        background: valid ? '#16a34a' : '#fef2f2', color: valid ? '#fff' : '#dc2626',
+                      }}>
+                        {trace === null ? `e ≥ φ — не годится` : `gcd = ${String(trace.gcd)} ${valid ? '✓' : '✗'}`}
                       </span>
                     </div>
-                    <button
-                      onClick={() => pickE(e)}
-                      disabled={!valid}
-                      className="px-3 py-1 text-xs font-bold bg-[#003d9b] text-white rounded disabled:bg-gray-300"
-                    >Выбрать</button>
+                    <button onClick={() => pickE(e)} disabled={!valid} style={{
+                      padding: '0.25rem 0.75rem', fontSize: '0.75rem', fontWeight: 700,
+                      background: valid ? primary : '#9ca3af', color: '#fff',
+                      borderRadius: '0.375rem', border: 'none', cursor: valid ? 'pointer' : 'not-allowed',
+                    }}>Выбрать</button>
                   </div>
                   {trace !== null && <EuclidTable rows={trace.rows} showQuotient />}
                 </div>
@@ -175,54 +190,56 @@ export default function KeyGeneration({ state, setState, nextStep }) {
         )}
 
         {section === 4 && state.e && state.d && eForwardTrace && eExtTrace && (
-          <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
-            <h3 className="text-lg font-bold">Секретная экспонента d = e⁻¹ mod φ</h3>
-            <p className="text-sm text-gray-600">
+          <div style={card}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Секретная экспонента d = e⁻¹ mod φ</h3>
+            <p style={{ fontSize: '0.875rem', color: muted, margin: 0 }}>
               Используем расширенный алгоритм Евклида: решаем e·x + φ·y = 1, тогда d ≡ x (mod φ).
             </p>
             <div>
-              <h4 className="text-xs font-bold uppercase text-gray-500 mb-2">Прямой ход — деления</h4>
+              <h4 style={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', color: muted, marginBottom: '0.5rem' }}>Прямой ход — деления</h4>
               <EuclidTable rows={eForwardTrace.rows} />
-              <p className="text-[11px] text-gray-400 mt-1">Каждая строка: dividend = quotient · divisor + remainder.</p>
+              <p style={{ fontSize: '0.6875rem', color: muted, marginTop: '0.25rem' }}>Каждая строка: dividend = quotient · divisor + remainder.</p>
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase text-gray-500 mb-2">Обратная подстановка</h4>
+              <h4 style={{ fontSize: '0.625rem', fontWeight: 700, textTransform: 'uppercase', color: muted, marginBottom: '0.5rem' }}>Обратная подстановка</h4>
               <BackSubList steps={eExtTrace.backSub} />
             </div>
-            <MathCard
-              tone="green"
-              title="Результат"
+            <MathCard tone="green" title="Результат"
               expression={`x = ${eExtTrace.x}, d ≡ x (mod φ)`}
               value={`d = ${state.d}`}
-              note={`Проверка: e · d mod φ = ${state.e} · ${state.d} mod ${state.phi} = ${(state.e * state.d) % state.phi}.`}
-            />
+              note={`Проверка: e · d mod φ = ${state.e} · ${state.d} mod ${state.phi} = ${(state.e * state.d) % state.phi}.`} />
           </div>
         )}
 
         {section === 5 && ready && (
-          <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
-            <h3 className="text-lg font-bold">Сводка по ключам</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div style={card}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Сводка по ключам</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <MathCard tone="blue" title="Публичный ключ" expression={`(e, n) = (${state.e}, ${state.n})`} note="Можно давать кому угодно." />
               <MathCard tone="green" title="Приватный ключ" expression={`(d, n) = (${state.d}, ${state.n})`} note="Храните в секрете вместе с p, q и φ(n)." />
             </div>
-            <button onClick={nextStep} className="w-full py-3 bg-[#003d9b] text-white font-bold rounded-lg hover:bg-[#0052cc]">
+            <button onClick={nextStep} style={{ width: '100%', padding: '0.75rem', background: primary, color: '#fff', fontWeight: 700, borderRadius: '0.5rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}>
               К шифрованию →
             </button>
           </div>
         )}
 
-        <div className="flex justify-between items-center pt-4">
-          <button disabled={section === 0} onClick={() => setSection(s => s - 1)}
-            className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-50 rounded disabled:opacity-30">‹ Назад</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1rem' }}>
+          <button disabled={section === 0} onClick={() => setSection(s => s - 1)} style={{
+            padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 700,
+            color: section === 0 ? muted : textColor,
+            background: 'none', border: 'none', cursor: section === 0 ? 'not-allowed' : 'pointer',
+            opacity: section === 0 ? 0.4 : 1,
+          }}>‹ Назад</button>
           <button
-            disabled={
-              section >= SECTIONS.length - 1 ||
-              (section === 0 && !state.p) ||
-              (section === 3 && !state.e)
-            }
+            disabled={section >= SECTIONS.length - 1 || (section === 0 && !state.p) || (section === 3 && !state.e)}
             onClick={() => setSection(s => s + 1)}
-            className="px-4 py-2 text-sm font-bold text-[#003d9b] hover:bg-blue-50 rounded disabled:opacity-30">Далее ›</button>
+            style={{
+              padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 700,
+              color: primary, background: 'none', border: 'none',
+              cursor: 'pointer',
+              opacity: (section >= SECTIONS.length - 1 || (section === 0 && !state.p) || (section === 3 && !state.e)) ? 0.4 : 1,
+            }}>Далее ›</button>
         </div>
       </div>
     </motion.div>

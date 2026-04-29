@@ -1,12 +1,12 @@
 export default function BackSubList({ steps, highlight = -1 }) {
   if (!steps || steps.length === 0) {
-    return <div className="text-xs text-gray-400 italic">Нет шагов обратной подстановки.</div>;
+    return <div style={{ fontSize: '0.75rem', color: 'var(--t-text-muted)', fontStyle: 'italic' }}>Нет шагов обратной подстановки.</div>;
   }
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 font-mono text-sm space-y-2">
+    <div style={{ background: 'var(--t-surface-alt)', border: '1px solid var(--t-border)', borderRadius: '0.5rem', padding: '1rem', fontFamily: 'monospace', fontSize: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
       {steps.map((s, i) => (
-        <div key={i} className={`transition-colors ${i === highlight ? 'text-[#003d9b] font-bold' : 'text-gray-600'}`}>
-          <span className="text-gray-400 mr-2">{i === 0 ? 'gcd:' : 'подставляем:'}</span>
+        <div key={i} style={{ color: i === highlight ? 'var(--t-primary)' : 'var(--t-text-muted)', fontWeight: i === highlight ? 700 : 400 }}>
+          <span style={{ color: 'var(--t-text-muted)', marginRight: '0.5rem' }}>{i === 0 ? 'gcd:' : 'подставляем:'}</span>
           {String(s.remainder)} = {String(s.dividend)} − {String(s.quotient)}·{String(s.divisor)}
         </div>
       ))}

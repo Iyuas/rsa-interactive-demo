@@ -7,24 +7,29 @@ export default function ModPowViz({ base, exp, mod, trace, label = 'modPow' }) {
   const total = trace.steps.length;
 
   return (
-    <div className="bg-white border border-[#c3c6d6] rounded-xl p-4 shadow-sm">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
+    <div style={{ background: 'var(--t-surface)', border: '1px solid var(--t-border)', borderRadius: '0.75rem', padding: '1rem' }}>
+      <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--t-text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           {label}: {String(base)}^{String(exp)} mod {String(mod)}
         </div>
-        <div className="font-mono text-xs text-[#003d9b]">
+        <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--t-primary)' }}>
           {String(exp)} = {trace.binary}<sub>2</sub>
         </div>
       </div>
 
-      <div className="flex gap-1 mb-3 justify-center flex-wrap">
+      <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
         {trace.binary.split('').map((b, i) => {
           const current = trace.steps[idx]?.bitIndex === i;
           return (
-            <div key={i} className={`w-8 h-8 rounded flex items-center justify-center font-mono text-sm font-bold border-2 ${
-              current ? 'border-[#003d9b] bg-[#f1f3ff]' :
-              b === '1' ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50 text-gray-400'
-            }`}>{b}</div>
+            <div key={i} style={{
+              width: '2rem', height: '2rem',
+              borderRadius: '0.25rem',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'monospace', fontSize: '0.875rem', fontWeight: 700,
+              border: `2px solid ${current ? 'var(--t-primary)' : b === '1' ? 'var(--t-border)' : 'var(--t-border)'}`,
+              background: current ? 'var(--t-primary-bg)' : b === '1' ? 'var(--t-surface)' : 'var(--t-surface-alt)',
+              color: b === '0' ? 'var(--t-text-muted)' : 'var(--t-text)',
+            }}>{b}</div>
           );
         })}
       </div>
@@ -48,8 +53,8 @@ export default function ModPowViz({ base, exp, mod, trace, label = 'modPow' }) {
           return <MathCard title={title} expression={expression} value={`r = ${s.after}`} note={note} />;
         }}
       />
-      <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded text-center font-mono text-sm">
-        Итог: <span className="text-[#003d9b] font-bold">{String(trace.result)}</span>
+      <div style={{ marginTop: '0.75rem', padding: '0.75rem', background: 'var(--t-primary-bg)', border: '1px solid var(--t-border)', borderRadius: '0.375rem', textAlign: 'center', fontFamily: 'monospace', fontSize: '0.875rem', color: 'var(--t-text)' }}>
+        Итог: <span style={{ color: 'var(--t-primary)', fontWeight: 700 }}>{String(trace.result)}</span>
       </div>
     </div>
   );
