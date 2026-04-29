@@ -17,9 +17,10 @@ export default function PresetPicker({ presetId, onApply }) {
     try {
       const p = BigInt(pInput);
       const q = BigInt(qInput);
-      if (p === q) throw new Error('p and q must differ');
-      if (!isPrime(p).isPrime) throw new Error(`p=${p} is not prime`);
-      if (!isPrime(q).isPrime) throw new Error(`q=${q} is not prime`);
+      if (p === q) throw new Error('p и q должны различаться');
+      if (!isPrime(p).isPrime) throw new Error(`p = ${p} не простое`);
+      if (!isPrime(q).isPrime) throw new Error(`q = ${q} не простое`);
+      if (p * q < 128n) throw new Error(`n = p · q = ${p * q} слишком мало: для шифрования ASCII нужно n ≥ 128. Возьмите простые побольше (например, 11 и 13).`);
       onApply({ presetId: 'custom', p, q });
       setErr(null);
     } catch (e) {
@@ -46,9 +47,9 @@ export default function PresetPicker({ presetId, onApply }) {
       <div className="border-t border-gray-200 pt-4">
         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Ручной ввод</p>
         <div className="grid grid-cols-2 gap-3">
-          <input value={pInput} onChange={e => setPInput(e.target.value)} placeholder="p (prime)"
+          <input value={pInput} onChange={e => setPInput(e.target.value)} placeholder="p (простое)"
             className="border border-[#c3c6d6] rounded p-2 font-mono text-sm" />
-          <input value={qInput} onChange={e => setQInput(e.target.value)} placeholder="q (prime)"
+          <input value={qInput} onChange={e => setQInput(e.target.value)} placeholder="q (простое)"
             className="border border-[#c3c6d6] rounded p-2 font-mono text-sm" />
         </div>
         <button

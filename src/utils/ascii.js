@@ -8,7 +8,7 @@ const CHAR_WIDTH = 3;
 export function encodeBlocks(text, n) {
   for (const ch of text) {
     const code = ch.charCodeAt(0);
-    if (code > 127) throw new Error(`Non-ASCII character "${ch}" (code ${code})`);
+    if (code > 127) throw new Error(`Символ «${ch}» вне ASCII (код ${code}). Используйте латиницу и базовые знаки препинания.`);
   }
 
   const nStr = n.toString();
@@ -22,7 +22,7 @@ export function encodeBlocks(text, n) {
     const digitStr = codes.map(c => String(c).padStart(CHAR_WIDTH, '0')).join('');
     const value = BigInt(digitStr);
     if (value >= n) {
-      throw new Error(`Block value ${value} >= n (${n}); pick larger primes.`);
+      throw new Error(`Блок «${slice}» = ${value} не помещается в n = ${n}. Вернитесь к шагу 1 и выберите простые покрупнее: для ASCII нужно n ≥ 128.`);
     }
     blocks.push({ chars, codes, digitStr, value });
   }

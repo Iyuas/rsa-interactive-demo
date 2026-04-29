@@ -1,22 +1,22 @@
 export const PRESETS = {
   edu: {
     id: 'edu',
-    label: 'Edu',
-    description: 'Small primes, readable traces',
+    label: 'Учебный',
+    description: 'Маленькие простые, видны все шаги',
     p: 61n,
     q: 53n,
   },
   standard: {
     id: 'standard',
-    label: 'Standard',
-    description: '4-digit primes, full demo',
+    label: 'Базовый',
+    description: '4-значные простые, полный прогон',
     p: 1009n,
     q: 1013n,
   },
   real: {
     id: 'real',
-    label: 'Real',
-    description: '~32-bit primes, block-level messages',
+    label: 'Реальный',
+    description: '32-битные простые, разбивка на блоки',
     p: 2_147_483_647n,  // 2^31 - 1
     q: 2_147_483_629n,  // nearest prime below
   },

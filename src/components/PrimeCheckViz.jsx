@@ -13,7 +13,7 @@ export default function PrimeCheckViz({ n, trace, label }) {
   return (
     <div className="bg-white border border-[#c3c6d6] rounded-xl p-4 shadow-sm">
       <div className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3">
-        {label}: Trial division для n = {String(n)}
+        {label}: перебор делителей для n = {String(n)}
       </div>
       <Stepper
         total={total}

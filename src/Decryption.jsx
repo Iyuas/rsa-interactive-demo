@@ -56,7 +56,7 @@ export default function Decryption({ state, prevStep }) {
       <div className="mb-6 flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-bold text-[#041b3c]">Расшифрование</h1>
-          <p className="text-gray-600 mt-1">Шаг 3 из 3. M = C<sup>d</sup> mod n.</p>
+          <p className="text-gray-600 mt-1">Шаг 3 из 3. Та же операция, что при шифровании, только в степени d: M = C<sup>d</sup> mod n. Из шифртекста получаем исходное число.</p>
         </div>
         <div className="bg-green-50 border border-green-200 rounded px-4 py-2">
           <span className="text-[10px] font-bold text-green-700 uppercase">Приватный ключ</span>
@@ -67,15 +67,18 @@ export default function Decryption({ state, prevStep }) {
       <div className="space-y-6">
         {phase === 0 && (
           <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
-            <h3 className="text-lg font-bold">Почему работает</h3>
+            <h3 className="text-lg font-bold">Почему это работает</h3>
+            <p className="text-sm text-gray-600">
+              На шаге 1 мы выбирали d так, чтобы e · d давало 1 по модулю φ(n) — то есть e · d = 1 + k·φ(n) для некоторого целого k. Подставим это в выражение C<sup>d</sup>: получим M<sup>e·d</sup> = M<sup>1 + k·φ(n)</sup> = M · (M<sup>φ(n)</sup>)<sup>k</sup>. По теореме Эйлера M<sup>φ(n)</sup> ≡ 1 (mod n), а значит вся скобка превращается в 1 — и остаётся ровно M. То есть возведение в степень d точно отменяет возведение в e.
+            </p>
             <MathCard
               tone="gray"
               title="Теорема Эйлера"
               expression={`M^(e·d) ≡ M^(1 + k·φ(n)) ≡ M · (M^φ(n))^k ≡ M (mod n)`}
-              note={`Поскольку e·d ≡ 1 (mod φ), применение степени d к C = M^e возвращает исходное M. Никакой магии — чистая теоретико-числовая тождественность.`}
+              note="Поэтому шифрование и расшифрование — обратные операции по построению, без всяких допущений."
             />
             <div>
-              <h4 className="text-xs font-bold uppercase text-gray-500 mb-2">Ciphertext-блоки</h4>
+              <h4 className="text-xs font-bold uppercase text-gray-500 mb-2">Блоки шифртекста</h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {state.blocks.map((b, i) => (
                   <div key={i} className="border border-[#c3c6d6] rounded p-3 bg-gray-50">
@@ -105,6 +108,10 @@ export default function Decryption({ state, prevStep }) {
               </div>
             </div>
 
+            <p className="text-sm text-gray-600">
+              Алгоритм тот же, что и при шифровании, только основание теперь — C, а показатель — d. Двоичное представление d задаёт порядок шагов: квадрат на каждом разряде, дополнительное умножение на C — там, где разряд равен 1.
+            </p>
+
             <ModPowViz
               base={state.blocks[activeBlock].cipher}
               exp={state.d}
@@ -125,6 +132,9 @@ export default function Decryption({ state, prevStep }) {
         {allDone && (
           <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
             <h3 className="text-lg font-bold">Декодирование блоков в ASCII</h3>
+            <p className="text-sm text-gray-600">
+              Получили обратно числа M — те же, что были на этапе шифрования. Осталось перевести их обратно в буквы: разбиваем каждое число на 3-значные группы и читаем как ASCII-коды.
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {state.blocks.map((b, i) => (
                 <MathCard
@@ -133,7 +143,7 @@ export default function Decryption({ state, prevStep }) {
                   title={`Блок ${i + 1}`}
                   expression={`M = ${decrypted[i]}`}
                   value={decodeValue(decrypted[i], b.chars.length)}
-                  note="Делим число на 3-значные группы (каждая — ASCII-код)."
+                  note="3 цифры → один ASCII-код → один символ."
                 />
               ))}
             </div>
@@ -144,7 +154,7 @@ export default function Decryption({ state, prevStep }) {
         {allDone && (
           <div className="bg-gradient-to-br from-white to-[#e0e8ff] border-2 border-[#003d9b] rounded-xl p-8 relative overflow-hidden">
             <h2 className="text-3xl font-bold text-[#041b3c] mb-2">Сообщение восстановлено</h2>
-            <p className="text-sm text-gray-600 mb-4">Никаких подстав: текст ниже — результат настоящего modPow.</p>
+            <p className="text-sm text-gray-600 mb-4">Текст ниже получен реальным вычислением C<sup>d</sup> mod n — исходное сообщение нигде не сохранялось.</p>
             <div className="bg-[#003d9b] text-white inline-block px-6 py-3 rounded-lg font-black text-2xl font-mono">
               {plaintext}
             </div>

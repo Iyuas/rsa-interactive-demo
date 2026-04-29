@@ -43,7 +43,7 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
       <div className="mb-6 flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-bold text-[#041b3c]">Шифрование</h1>
-          <p className="text-gray-600 mt-1">Шаг 2 из 3. C = M<sup>e</sup> mod n — вычисляем честно.</p>
+          <p className="text-gray-600 mt-1">Шаг 2 из 3. Превращаем текст в число M, потом считаем шифртекст по формуле C = M<sup>e</sup> mod n.</p>
         </div>
         <div className="bg-blue-50 border border-blue-200 rounded px-4 py-2">
           <span className="text-[10px] font-bold text-[#003d9b] uppercase">Публичный ключ</span>
@@ -53,7 +53,10 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
 
       <div className="space-y-6">
         <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm">
-          <h3 className="text-lg font-bold mb-3">Ввод сообщения</h3>
+          <h3 className="text-lg font-bold mb-1">Ввод сообщения</h3>
+          <p className="text-sm text-gray-600 mb-3">
+            Введите текст. На следующем шаге каждая буква превратится в свой ASCII-код, а коды соберутся в числа M, которые поместятся в модуль n.
+          </p>
           <div className="flex gap-3">
             <input value={text} onChange={e => setText(e.target.value)}
               placeholder="ASCII-текст"
@@ -63,12 +66,25 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
               Оцифровать
             </button>
           </div>
-          {err && <p className="text-xs text-red-600 mt-2 font-mono">{err}</p>}
+          {err && (
+            <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-800">
+              <p className="font-bold mb-1">Не получилось оцифровать</p>
+              <p className="text-xs mb-2">{err}</p>
+              {state.n !== null && state.n < 128n && (
+                <button onClick={prevStep} className="text-xs font-bold text-[#003d9b] hover:underline">
+                  ‹ Вернуться к выбору простых
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {phase >= 1 && state.blocks.length > 0 && (
           <div className="bg-white border border-[#c3c6d6] rounded-xl p-6 shadow-sm space-y-4">
             <h3 className="text-lg font-bold">Перевод в числа</h3>
+            <p className="text-sm text-gray-600">
+              Берём ASCII-код каждой буквы (3 цифры на символ) и склеиваем в одно число. Если оно вдруг окажется ≥ n, бьём текст на блоки поменьше — RSA умеет работать только с числами строго меньше n.
+            </p>
             <AsciiTableViz text={text} codes={[...text].map(c => c.charCodeAt(0))} />
             <div>
               <h4 className="text-xs font-bold uppercase text-gray-500 mb-2">Блоки (каждый блок &lt; n)</h4>
@@ -106,8 +122,7 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
             </div>
 
             <p className="text-sm text-gray-600">
-              Метод «квадрат и умножение»: двоичное представление e даёт программу действий.
-              Квадрат на каждом бите, умножение на base на каждом 1-бите.
+              Возводить M в степень e напрямую невозможно: даже для маленьких чисел результат вырастает до сотен цифр. Идея алгоритма «возведение в квадрат и умножение»: записываем e в двоичной системе и читаем разряды слева направо. На каждом — возводим текущий результат r в квадрат (так показатель удваивается). Если разряд равен 1 — дополнительно умножаем на M. После каждой операции берём mod n, чтобы число не разрасталось.
             </p>
 
             <ModPowViz
@@ -130,6 +145,9 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
         {allDone && (
           <div className="bg-gradient-to-br from-white to-[#e0e8ff] border-2 border-[#003d9b] rounded-xl p-6">
             <h3 className="text-xl font-bold text-[#041b3c] mb-2">Сообщение зашифровано</h3>
+            <p className="text-sm text-gray-600 mb-3">
+              Это и есть шифртекст: набор чисел, которые без знания d превратить обратно в текст не получится.
+            </p>
             <div className="font-mono text-sm space-y-1 text-[#003d9b]">
               {state.blocks.map((b, i) => (
                 <div key={i}>C{i + 1} = {String(b.cipher)}</div>

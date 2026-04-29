@@ -37,14 +37,14 @@ export default function ModPowViz({ base, exp, mod, trace, label = 'modPow' }) {
         renderStep={(i) => {
           const s = trace.steps[i];
           const title = s.op === 'square'
-            ? `Квадрат (bit ${s.bitIndex}: ${s.bit})`
-            : `Умножение на base (bit ${s.bitIndex}: 1)`;
+            ? `Возведение в квадрат (разряд ${s.bitIndex}: ${s.bit})`
+            : `Умножение на основание (разряд ${s.bitIndex} = 1)`;
           const expression = s.op === 'square'
             ? `r = ${s.before}² mod ${mod}`
             : `r = ${s.before} · ${base} mod ${mod}`;
           const note = s.op === 'square'
-            ? 'Каждая итерация удваивает степень: r была r_prev, стала r_prev². Модуль удерживает число в рамке.'
-            : `Бит = 1 → умножаем на base, добавляя одну единицу в показатель.`;
+            ? 'Возводим текущее r в квадрат — накопленный показатель степени удваивается. Сразу берём mod n, чтобы число не разрасталось.'
+            : `Разряд равен 1: умножаем r на основание (${base}), добавляя единицу к накопленному показателю.`;
           return <MathCard title={title} expression={expression} value={`r = ${s.after}`} note={note} />;
         }}
       />
