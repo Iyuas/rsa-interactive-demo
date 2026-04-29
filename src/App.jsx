@@ -4,6 +4,7 @@ import Layout from './Layout';
 import KeyGeneration from './KeyGeneration';
 import Encryption from './Encryption';
 import Decryption from './Decryption';
+import Theory from './Theory';
 import { PRESETS, DEFAULT_PRESET_ID } from './utils/presets';
 
 const initialPreset = PRESETS[DEFAULT_PRESET_ID];
@@ -40,6 +41,9 @@ export default function App() {
           )}
           {currentStep === 3 && (
             <Decryption key="step3" state={cryptoState} setState={setCryptoState} prevStep={prevStep} />
+          )}
+          {currentStep === 4 && (
+            <Theory key="step4" />
           )}
         </AnimatePresence>
       </Layout>

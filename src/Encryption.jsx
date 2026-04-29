@@ -179,6 +179,7 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
             </p>
 
             <ModPowViz
+              key={activeBlock}
               base={state.blocks[activeBlock].value}
               exp={state.e}
               mod={state.n}
