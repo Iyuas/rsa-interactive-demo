@@ -138,6 +138,29 @@ export default function KeyGeneration({ state, setState, nextStep }) {
             <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Вычисляем модуль n = p · q</h3>
             <MathCard title="Подстановка" expression={`n = ${state.p} · ${state.q}`} value={String(state.n)}
               note="n публикуется как часть открытого ключа. Безопасность RSA держится на том, что обратное — факторизация n — вычислительно непосильна для больших простых." />
+            {state.n < 128n && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                background: '#fffbeb',
+                border: '1px solid #fcd34d',
+                borderRadius: '0.5rem',
+                padding: '0.75rem 1rem',
+              }}>
+                <span className="material-symbols-outlined" style={{ color: '#d97706', fontSize: '1.25rem', flexShrink: 0 }}>warning</span>
+                <div>
+                  <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#92400e', marginBottom: '0.2rem' }}>
+                    n = {String(state.n)} — слишком маленькое значение
+                  </div>
+                  <div style={{ fontSize: '0.75rem', color: '#b45309', lineHeight: '1.5' }}>
+                    При n &lt; 128 каждый ASCII-символ (коды 32–127) может оказаться больше n, 
+                    что делает корректное шифрование невозможным. Для работы с текстом нужно n ≥ 128. 
+                    Выберите бо́льшие простые числа.
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

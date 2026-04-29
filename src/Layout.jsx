@@ -85,13 +85,7 @@ export default function Layout({ children, currentStep, setCurrentStep, darkMode
             </span>
             {darkMode ? 'Светлая' : 'Научная'}
           </button>
-          <button style={{ padding: '0.5rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'transparent', cursor: 'pointer' }}>
-            <span className="material-symbols-outlined" style={{ color: t.textMuted }}>help</span>
-          </button>
-          <button style={{ padding: '0.5rem', borderRadius: '0.5rem', border: 'none', backgroundColor: 'transparent', cursor: 'pointer' }}>
-            <span className="material-symbols-outlined" style={{ color: t.textMuted }}>settings</span>
-          </button>
-          <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', backgroundColor: t.border }}></div>
+
         </div>
       </header>
 
@@ -152,7 +146,7 @@ export default function Layout({ children, currentStep, setCurrentStep, darkMode
           </div>
           <div style={{ marginTop: '2.5rem' }}>
             <p style={{ fontSize: '0.6875rem', fontWeight: 700, color: t.textMuted, marginBottom: '0.5rem', padding: '0 0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Reference</p>
-            <a href="#" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 0.75rem', borderRadius: '0.5rem', color: t.textMuted, textDecoration: 'none', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            <a href="#" onClick={(e) => { e.preventDefault(); setCurrentStep(4); }} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.625rem 0.75rem', borderRadius: '0.5rem', color: currentStep === 4 ? t.primary : t.textMuted, textDecoration: 'none', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', backgroundColor: currentStep === 4 ? t.primaryBg : 'transparent', borderRight: currentStep === 4 ? `2px solid ${t.primary}` : 'none' }}>
               <span className="material-symbols-outlined" style={{ fontSize: '1.125rem' }}>menu_book</span>
               Theory
             </a>

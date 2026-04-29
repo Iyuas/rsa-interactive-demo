@@ -133,6 +133,7 @@ export default function Decryption({ state, prevStep }) {
             </div>
 
             <ModPowViz
+              key={activeBlock}
               base={state.blocks[activeBlock].cipher}
               exp={state.d}
               mod={state.n}
