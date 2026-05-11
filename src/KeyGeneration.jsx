@@ -6,6 +6,12 @@ import AnswerCheck from './components/AnswerCheck';
 import Calculator from './components/Calculator';
 import EuclidTable from './components/EuclidTable';
 import BackSubList from './components/BackSubList';
+import Concept from './components/Concept';
+import Glossary from './components/Glossary';
+import ProgressRail from './components/ProgressRail';
+import PrimeSieve from './components/lab/PrimeSieve';
+import GcdGrid from './components/lab/GcdGrid';
+import EuclidStrip from './components/lab/EuclidStrip';
 import { gcdTrace, extGcdTrace, modInverse } from './utils/rsaMath';
 
 const SECTIONS = [
@@ -61,6 +67,11 @@ export default function KeyGeneration({ state, setState, nextStep }) {
   const [section, setSection] = useState(0);
   const [progress, setProgress] = useState({ n: false, phi: false, e: false, d: false });
 
+  const markConcept = (name) => {
+    setState((s) => ({ ...s, concepts: { ...s.concepts, [name]: true } }));
+  };
+  const concepts = state.concepts || {};
+
   const eTrace = useMemo(
     () => (state.e && state.phi ? gcdTrace(state.e, state.phi) : null),
     [state.e, state.phi],
@@ -105,12 +116,22 @@ export default function KeyGeneration({ state, setState, nextStep }) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-      <div style={{ marginBottom: '1.5rem' }}>
+      <div style={{ marginBottom: '1.25rem' }}>
         <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: textColor, marginBottom: '0.5rem', marginTop: 0 }}>RSA Key Generation</h2>
         <p style={{ color: muted, maxWidth: '48rem', margin: 0 }}>
-          Build the public and private keys yourself. The site checks each answer and can reveal the solution when you get stuck.
+          Build the public and private keys yourself. Each card starts with a small interactive experiment, then reveals the rule, then asks you to fill in the answer. Stuck? Use "Show solution" to peek.
         </p>
       </div>
+
+      <ProgressRail items={[
+        { label: 'p', value: state.p ? String(state.p) : null, done: !!state.p },
+        { label: 'q', value: state.q ? String(state.q) : null, done: !!state.q },
+        { label: 'n', value: state.n ? String(state.n) : null, done: progress.n },
+        { label: 'φ(n)', value: state.phi ? String(state.phi) : null, done: progress.phi },
+        { label: 'e', value: state.e ? String(state.e) : null, done: progress.e },
+        { label: 'd', value: state.d ? String(state.d) : null, done: progress.d },
+      ]} />
+      <div style={{ height: '1rem' }} />
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem' }}>
         {SECTIONS.map((s, i) => {
@@ -133,53 +154,103 @@ export default function KeyGeneration({ state, setState, nextStep }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 18rem', gap: '1rem', alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {section === 0 && (
-            <div style={card}>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Choose two prime numbers</h3>
-              <p style={{ fontSize: '0.875rem', color: muted, margin: 0 }}>
-                RSA begins with p and q. Multiplying them is easy, but recovering p and q from n becomes hard when the primes are very large.
-              </p>
-              <PresetPicker onApply={applyPrimes} />
-            </div>
+            <>
+              <Concept
+                title="What is a prime number?"
+                question={<>RSA starts from two <Glossary term="prime">prime numbers</Glossary>. The Sieve of Eratosthenes is the fastest way to feel why primes are special: click 2, then 3, then 5 and watch the multiples disappear. Anything still standing is prime.</>}
+                discoverDone={concepts.prime}
+                discover={<PrimeSieve onUnderstood={() => markConcept('prime')} />}
+                reveal={
+                  <MathCard
+                    title="Rule"
+                    expression="A number > 1 is prime if it has only two divisors: 1 and itself"
+                    note="In RSA the primes are hundreds of digits long. We never list them in a grid — instead, we test single numbers for primality. But the intuition is the same as the sieve above."
+                  />
+                }
+              />
+              <div style={card}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Choose two prime numbers</h3>
+                <p style={{ fontSize: '0.875rem', color: muted, margin: 0 }}>
+                  RSA begins with p and q. Multiplying them is easy, but recovering p and q from n becomes hard when the primes are very large.
+                </p>
+                <PresetPicker onApply={applyPrimes} />
+              </div>
+            </>
           )}
 
           {section === 1 && state.p && state.q && (
             <div style={card}>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Calculate n = p x q</h3>
-              <MathCard title="Formula" expression={`n = ${state.p} x ${state.q}`} note="n becomes part of both the public key and the private key." />
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Calculate n = p × q</h3>
+              <MathCard title="Formula" expression={`n = ${state.p} × ${state.q}`} note="n becomes part of both the public key and the private key. Multiplying two primes is easy; recovering them from the product is hard — that is the whole foundation of RSA security." />
               <AnswerCheck
                 key={`n-${state.p}-${state.q}`}
                 label="What is n?"
                 hint="Multiply p by q."
                 expected={state.n}
                 normalize={normalizeNumber}
-                formatSolution={() => `${state.p} x ${state.q} = ${state.n}`}
+                formatSolution={() => `${state.p} × ${state.q} = ${state.n}`}
                 onCorrect={() => setProgress((p) => ({ ...p, n: true }))}
               />
             </div>
           )}
 
           {section === 2 && state.phi !== null && (
-            <div style={card}>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Calculate phi(n)</h3>
-              <MathCard title="Formula" expression={`phi(n) = (p - 1)(q - 1) = (${state.p} - 1)(${state.q} - 1)`} note="phi(n) counts how many numbers below n are coprime with n. In RSA it must stay secret." />
-              <AnswerCheck
-                key={`phi-${state.p}-${state.q}`}
-                label="What is phi(n)?"
-                hint="Subtract 1 from each prime, then multiply."
-                expected={state.phi}
-                normalize={normalizeNumber}
-                formatSolution={() => `(${state.p} - 1) x (${state.q} - 1) = ${state.p - 1n} x ${state.q - 1n} = ${state.phi}`}
-                onCorrect={() => setProgress((p) => ({ ...p, phi: true }))}
+            <>
+              <Concept
+                title="What does φ(n) count?"
+                question={<>φ(n) is the count of numbers from 1 to n−1 that are <Glossary term="coprime">coprime</Glossary> with n. Click numbers below that are coprime with {String(state.n)} — green means correct. Once you find a few, the pattern speaks for itself.</>}
+                discoverDone={concepts.phi}
+                discover={
+                  <GcdGrid
+                    target={Number(state.n) <= 200 ? Number(state.n) : 33}
+                    min={2}
+                    max={Number(state.n) <= 200 ? Number(state.n) : 33}
+                    pickGoal={3}
+                    onUnderstood={() => markConcept('phi')}
+                  />
+                }
+                reveal={
+                  <MathCard
+                    title="Shortcut for n = p·q"
+                    expression="φ(p·q) = (p − 1)(q − 1)"
+                    note="When n is the product of two distinct primes, you don't have to count one by one. Every number coprime with n is the count we want, and the formula gives it directly."
+                  />
+                }
               />
-            </div>
+              <div style={card}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Now compute φ(n) for these primes</h3>
+                <MathCard title="Formula" expression={`φ(n) = (p − 1)(q − 1) = (${state.p} − 1)(${state.q} − 1)`} note="φ(n) is the count you just explored. In RSA it must stay secret." />
+                <AnswerCheck
+                  key={`phi-${state.p}-${state.q}`}
+                  label="What is φ(n)?"
+                  hint="Subtract 1 from each prime, then multiply."
+                  expected={state.phi}
+                  normalize={normalizeNumber}
+                  formatSolution={() => `(${state.p} − 1) × (${state.q} − 1) = ${state.p - 1n} × ${state.q - 1n} = ${state.phi}`}
+                  onCorrect={() => setProgress((p) => ({ ...p, phi: true }))}
+                />
+              </div>
+            </>
           )}
 
           {section === 3 && state.phi !== null && (
             <div style={card}>
               <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Choose the public exponent e</h3>
               <p style={{ color: muted, margin: 0, fontSize: '0.875rem' }}>
-                e must satisfy 1 &lt; e &lt; phi(n), and gcd(e, phi(n)) must be 1. That means e and phi(n) share no divisor except 1.
+                e must satisfy 1 &lt; e &lt; φ(n), and <Glossary term="gcd">gcd</Glossary>(e, φ(n)) must be 1. In words: e and φ(n) share no common divisor other than 1.
               </p>
+              <div style={{ background: 'var(--t-surface-alt)', border: '1px solid var(--t-border)', borderRadius: '0.5rem', padding: '0.75rem' }}>
+                <div style={{ fontSize: '0.625rem', fontWeight: 800, color: muted, textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                  Find a coprime candidate
+                </div>
+                <GcdGrid
+                  target={Number(state.phi)}
+                  min={2}
+                  max={Math.min(Number(state.phi), 60)}
+                  pickGoal={1}
+                  onUnderstood={() => markConcept('gcd')}
+                />
+              </div>
               <AnswerCheck
                 key={`e-${state.phi}`}
                 label="Enter a valid e"
@@ -213,9 +284,21 @@ export default function KeyGeneration({ state, setState, nextStep }) {
             <div style={card}>
               <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Find the private exponent d</h3>
               <p style={{ color: muted, margin: 0, fontSize: '0.875rem' }}>
-                d is the modular inverse of e. In plain words: d is the number that makes e x d leave remainder 1 when divided by phi(n).
+                d is the <Glossary term="modinv">modular inverse</Glossary> of e: the number that makes (e · d) mod φ(n) = 1. We find it with the <Glossary term="extgcd">extended Euclidean algorithm</Glossary>.
               </p>
-              <MathCard title="Target" expression={`(e x d) mod phi(n) = (${state.e} x d) mod ${state.phi} = 1`} />
+              <Concept
+                title="Walk through the extended Euclidean algorithm"
+                question={<>The forward pass keeps dividing the larger by the smaller until the remainder is 0. The back-substitution then expresses gcd(e, φ) as a linear combination of e and φ — and the coefficient on e is exactly d (mod φ). Step through it.</>}
+                discoverDone={concepts.extgcd}
+                discover={
+                  <EuclidStrip
+                    a={Number(state.phi) < 1e9 ? Number(state.phi) : 3120}
+                    b={Number(state.e) < 1e9 ? Number(state.e) : 17}
+                    onUnderstood={() => markConcept('extgcd')}
+                  />
+                }
+              />
+              <MathCard title="Target" expression={`(e · d) mod φ(n) = (${state.e} · d) mod ${state.phi} = 1`} />
               <AnswerCheck
                 key={`d-${state.e}-${state.phi}`}
                 label="What is d?"

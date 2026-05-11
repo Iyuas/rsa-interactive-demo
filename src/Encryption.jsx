@@ -4,6 +4,11 @@ import AsciiTableViz from './components/AsciiTableViz';
 import AnswerCheck from './components/AnswerCheck';
 import Calculator from './components/Calculator';
 import MathCard from './components/MathCard';
+import Concept from './components/Concept';
+import Glossary from './components/Glossary';
+import ProgressRail from './components/ProgressRail';
+import ModClock from './components/lab/ModClock';
+import BitLadder from './components/lab/BitLadder';
 import { encodeBlocks } from './utils/ascii';
 import { modPowTrace } from './utils/rsaMath';
 
@@ -24,6 +29,11 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
   const [phase, setPhase] = useState(0);
   const [activeBlock, setActiveBlock] = useState(0);
   const [err, setErr] = useState(null);
+
+  const markConcept = (name) => {
+    setState((s) => ({ ...s, concepts: { ...s.concepts, [name]: true } }));
+  };
+  const concepts = state.concepts || {};
 
   const digitize = () => {
     try {
@@ -66,7 +76,7 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
         <div>
           <h1 style={{ fontSize: '1.875rem', fontWeight: 700, color: textColor, margin: 0 }}>Encryption</h1>
           <p style={{ color: muted, marginTop: '0.25rem', margin: '0.25rem 0 0' }}>
-            Step 2 of 3. Encrypt each character separately with C = M^e mod n.
+            Step 2 of 3. Convert each character to a number M via <Glossary term="ascii">ASCII</Glossary>, then compute C = M<sup>e</sup> mod n. Anyone can encrypt with the <Glossary term="publickey">public key</Glossary>, but only the private key can decrypt.
           </p>
         </div>
         <div style={{ background: primaryBg, border: `1px solid ${border}`, borderRadius: '0.5rem', padding: '0.5rem 1rem' }}>
@@ -75,8 +85,55 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
         </div>
       </div>
 
+      <ProgressRail items={[
+        { label: 'e', value: state.e ? String(state.e) : null, done: !!state.e },
+        { label: 'n', value: state.n ? String(state.n) : null, done: !!state.n },
+        { label: 'text', value: state.plaintext || null, done: !!state.plaintext },
+        { label: 'chars', value: state.blocks.length || null, done: state.blocks.length > 0 },
+        { label: 'encrypted chars', value: state.blocks.filter(b => b.cipher !== null).length, done: state.blocks.length > 0 && state.blocks.every(b => b.cipher !== null) },
+      ]} />
+      <div style={{ height: '1.25rem' }} />
+
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 18rem', gap: '1rem', alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+          <Concept
+            title="First, get a feel for mod"
+            question={<>Before encrypting anything, try the <Glossary term="mod">mod</Glossary> operation. Drag the number <code>a</code>: the clock has n positions, and counting a steps from 0 lands on a mod n. Try values that wrap around the dial twice.</>}
+            discoverDone={concepts.mod}
+            discover={<ModClock n={7} onUnderstood={() => markConcept('mod')} />}
+            reveal={
+              <MathCard
+                title="Rule"
+                expression="a mod n = the remainder of a divided by n"
+                note="Plainly: original number = full groups of n + leftover. The leftover is a mod n. In RSA n is huge, but the picture is the same — the dial is just much longer."
+              />
+            }
+          />
+
+          {state.e && state.n && (
+            <Concept
+              title="Computing huge powers modulo n"
+              question={<>The number 100^1000 becomes enormous very quickly. But if all we need is the <Glossary term="mod">remainder</Glossary> there is a trick: <Glossary term="modpow">square-and-multiply</Glossary>. Step through a few binary digits and you'll see how the exponent's bits drive the algorithm.</>}
+              discoverDone={concepts.modpow}
+              discover={
+                <BitLadder
+                  base={7}
+                  exponent={Number(state.e)}
+                  modulus={Number(state.n) < 100000 ? Number(state.n) : 3233}
+                  onUnderstood={() => markConcept('modpow')}
+                />
+              }
+              reveal={
+                <MathCard
+                  title="Why it works"
+                  expression="result = 1; read the exponent's bits left to right; at each bit: result = result² mod n; if the bit is 1: result = result · base mod n"
+                  note="After each reduction the stored value is below n; before reduction each multiplication stays below n². The numbers never explode."
+                />
+              }
+            />
+          )}
+
           <div style={card}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginTop: 0, marginBottom: '0.75rem', color: textColor }}>Message</h3>
             <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>

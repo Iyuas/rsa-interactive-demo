@@ -19,6 +19,16 @@ const initialState = {
   d: null,
   plaintext: '',
   blocks: [],
+  concepts: {
+    prime: false,
+    gcd: false,
+    coprime: false,
+    phi: false,
+    extgcd: false,
+    mod: false,
+    modpow: false,
+    eulerian: false,
+  },
 };
 
 export default function App() {

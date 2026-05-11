@@ -73,12 +73,11 @@ export default function Theory() {
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: textColor, marginBottom: '0.5rem', marginTop: 0 }}>
-          Теория алгоритма RSA
+          The RSA algorithm — theory
         </h2>
         <p style={{ ...muted, maxWidth: '52rem' }}>
-          RSA — асимметричный криптографический алгоритм с открытым ключом, разработанный в 1977 году
-          Роном Ривестом, Ади Шамиром и Леонардом Адлеманом. Безопасность RSA основана на вычислительной
-          сложности задачи факторизации больших чисел.
+          RSA is a public-key cryptosystem published in 1977 by Ron Rivest, Adi Shamir, and Leonard Adleman.
+          Its security rests on the computational difficulty of factoring large composite numbers.
         </p>
       </div>
 
@@ -88,23 +87,24 @@ export default function Theory() {
         <div style={card}>
           <h3 style={sectionTitle}>
             <span className="material-symbols-outlined" style={{ color: primary }}>info</span>
-            Что такое RSA?
+            What is RSA?
           </h3>
           <p style={p}>
-            RSA является <strong>асимметричным</strong> алгоритмом: он использует два разных ключа — открытый
-            (публичный) и закрытый (приватный). Открытый ключ можно публиковать и передавать кому угодно —
-            с его помощью шифруются сообщения. Расшифровать их может только владелец закрытого ключа.
+            RSA is an <strong>asymmetric</strong> algorithm: it uses two different keys — a public one
+            and a private one. The public key locks the message; the private key unlocks it.
+            Anyone can have the public key and use it to encrypt messages, but only the holder of the
+            matching private key can decrypt them.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div style={{ background: primaryBg, border: `1px solid ${border}`, borderRadius: '0.5rem', padding: '1rem' }}>
-              <div style={{ fontSize: '0.625rem', fontWeight: 700, color: primary, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Открытый ключ</div>
+              <div style={{ fontSize: '0.625rem', fontWeight: 700, color: primary, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Public key</div>
               <div style={{ fontFamily: 'monospace', fontWeight: 700, color: textColor, fontSize: '0.875rem' }}>(e, n)</div>
-              <div style={muted}>Распространяется свободно. Используется для шифрования.</div>
+              <div style={muted}>Distributed openly. Used to encrypt.</div>
             </div>
             <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.5rem', padding: '1rem' }}>
-              <div style={{ fontSize: '0.625rem', fontWeight: 700, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Закрытый ключ</div>
+              <div style={{ fontSize: '0.625rem', fontWeight: 700, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Private key</div>
               <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#14532d', fontSize: '0.875rem' }}>(d, n)</div>
-              <div style={muted}>Хранится в тайне. Используется для расшифрования.</div>
+              <div style={muted}>Kept secret. Used to decrypt.</div>
             </div>
           </div>
         </div>
@@ -113,54 +113,55 @@ export default function Theory() {
         <div style={card}>
           <h3 style={sectionTitle}>
             <span style={badge(primary)}>1</span>
-            Генерация ключей
+            Key generation
           </h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div>
-              <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Шаг 1 — Выбрать два простых числа p и q</div>
+              <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Step 1 — Pick two prime numbers p and q</div>
               <p style={muted}>
-                Выбираем два различных простых числа. Чем больше числа, тем надёжнее шифрование.
-                Например, p = 3, q = 7.
+                Choose two distinct primes. The larger they are, the stronger the key.
+                For illustration: p = 3, q = 7.
               </p>
             </div>
 
             <div>
-              <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Шаг 2 — Вычислить модуль n</div>
+              <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Step 2 — Compute the modulus n</div>
               <div style={mathBlock}>n = p × q</div>
-              <p style={muted}>n публикуется как часть открытого ключа. Для p=3, q=7: n = 21.</p>
+              <p style={muted}>n is published as part of the public key. With p = 3, q = 7 we get n = 21.</p>
             </div>
 
             <div>
-              <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Шаг 3 — Вычислить функцию Эйлера φ(n)</div>
+              <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Step 3 — Compute Euler's totient φ(n) (read "phi of n")</div>
               <div style={mathBlock}>φ(n) = (p − 1) × (q − 1)</div>
-              <p style={muted}>Для p=3, q=7: φ(21) = 2 × 6 = 12. Это число хранится в секрете.</p>
+              <p style={muted}>For p = 3, q = 7: φ(21) = 2 × 6 = 12. This value must stay secret — if someone knows φ(n), they can compute d.</p>
             </div>
 
             <div>
-              <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Шаг 4 — Выбрать открытую экспоненту e</div>
-              <p style={muted}>Выбираем e такое, что:</p>
+              <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Step 4 — Pick the public exponent e</div>
+              <p style={muted}>Choose e so that:</p>
               <ul style={{ ...muted, paddingLeft: '1.25rem', margin: '0.25rem 0' }}>
                 <li>1 &lt; e &lt; φ(n)</li>
-                <li>НОД(e, φ(n)) = 1 (e взаимно просто с φ(n))</li>
+                <li>gcd(e, φ(n)) = 1 — that is, e and φ(n) are coprime</li>
               </ul>
-              <p style={muted}>Стандартный выбор — e = 65537. Пример: e = 5.</p>
+              <p style={muted}>The standard choice in real systems is e = 65537. For our example: e = 5.</p>
             </div>
 
             <div>
-              <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Шаг 5 — Найти закрытую экспоненту d</div>
+              <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>Step 5 — Find the private exponent d</div>
               <div style={mathBlock}>d ≡ e⁻¹ (mod φ(n))  ↔  (d × e) mod φ(n) = 1</div>
               <p style={muted}>
-                d вычисляется расширенным алгоритмом Евклида. Пример: e=5, φ=12 → d=5, так как 5×5=25, 25 mod 12=1.
-                Выбирают d≠e: d=17 (17×5=85, 85 mod 12=1).
+                d is found with the extended Euclidean algorithm. With e = 5 and φ(n) = 12 the modular
+                inverse is not unique: any value congruent to 5 modulo 12 works, such as 5, 17, or 29.
+                We will use d = 17 to make the example less visually confusing (5 × 17 = 85, and 85 mod 12 = 1).
               </p>
             </div>
 
             <div style={{ background: primaryBg, border: `1px solid ${border}`, borderRadius: '0.5rem', padding: '1rem' }}>
-              <div style={{ fontSize: '0.625rem', fontWeight: 700, color: primary, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Итог генерации</div>
+              <div style={{ fontSize: '0.625rem', fontWeight: 700, color: primary, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Resulting keys</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontFamily: 'monospace', fontSize: '0.875rem', color: textColor }}>
-                <div>Открытый ключ: <strong>(e, n) = (5, 21)</strong></div>
-                <div>Закрытый ключ: <strong>(d, n) = (17, 21)</strong></div>
+                <div>Public key: <strong>(e, n) = (5, 21)</strong></div>
+                <div>Private key: <strong>(d, n) = (17, 21)</strong></div>
               </div>
             </div>
           </div>
@@ -170,20 +171,24 @@ export default function Theory() {
         <div style={card}>
           <h3 style={sectionTitle}>
             <span style={badge('#2563eb')}>2</span>
-            Шифрование
+            Encryption
           </h3>
           <p style={p}>
-            Пусть M — исходное сообщение (число). Условие: M &lt; n. Шифртекст C вычисляется по формуле:
+            Let M be the plaintext message expressed as a number. For this simple version, use a number
+            M with 0 ≤ M &lt; n. The proof of correctness below assumes M is coprime with n.
+            The ciphertext C is computed with:
           </p>
           <div style={mathBlock}>C = M<sup>e</sup> mod n</div>
           <p style={muted}>
-            Пример: M = 19, открытый ключ (e=5, n=21).
-            19⁵ = 2&thinsp;476&thinsp;099. 2&thinsp;476&thinsp;099 mod 21 = 10. Шифртекст: C = 10.
+            Toy example with the keys above (e = 5, n = 21). Pick M = 19.
+            19⁵ = 2&thinsp;476&thinsp;099. 2&thinsp;476&thinsp;099 mod 21 = 10. So C = 10.
+            With n = 21 we cannot fit normal ASCII codes — the interactive Encryption section
+            uses larger keys so each letter fits.
           </p>
           <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '0.5rem', padding: '0.75rem 1rem', fontSize: '0.8125rem', color: '#1e40af' }}>
-            <span style={{ fontWeight: 700 }}>Оптимизация:</span> не нужно вычислять M<sup>e</sup> целиком.
-            Метод «квадрат и умножение» (Square-and-Multiply) применяет операцию mod на каждом шаге,
-            не допуская роста числа.
+            <span style={{ fontWeight: 700 }}>Optimisation:</span> nobody computes M<sup>e</sup> in full.
+            The square-and-multiply method takes the remainder mod n at every step,
+            so the stored value stays below n and each multiplication stays below n².
           </div>
         </div>
 
@@ -191,19 +196,19 @@ export default function Theory() {
         <div style={card}>
           <h3 style={sectionTitle}>
             <span style={badge('#16a34a')}>3</span>
-            Расшифрование
+            Decryption
           </h3>
           <p style={p}>
-            Получатель использует закрытый ключ (d, n) для восстановления исходного M:
+            The recipient uses the private key (d, n) to recover the original M:
           </p>
           <div style={mathBlock}>M = C<sup>d</sup> mod n</div>
           <p style={muted}>
-            Пример: C = 10, закрытый ключ (d=17, n=21).
-            10¹⁷ mod 21 = 19 = M. Сообщение восстановлено.
+            Example: C = 10 with the private key (d = 17, n = 21).
+            10¹⁷ mod 21 = 19 = M. The message is recovered.
           </p>
           <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.5rem', padding: '0.75rem 1rem', fontSize: '0.8125rem', color: '#14532d' }}>
-            <span style={{ fontWeight: 700 }}>Почему работает:</span> по теореме Эйлера M<sup>φ(n)</sup> ≡ 1 (mod n).
-            Поскольку e·d ≡ 1 (mod φ(n)), то M<sup>e·d</sup> = M<sup>1+k·φ(n)</sup> = M · (M<sup>φ(n)</sup>)<sup>k</sup> ≡ M (mod n).
+            <span style={{ fontWeight: 700 }}>Why it works (the math below explains why decryption reverses encryption — you do not need to memorise it):</span> by Euler's theorem M<sup>φ(n)</sup> ≡ 1 (mod n) when gcd(M, n) = 1.
+            Because e·d ≡ 1 (mod φ(n)), we have M<sup>e·d</sup> = M<sup>1+k·φ(n)</sup> = M · (M<sup>φ(n)</sup>)<sup>k</sup> ≡ M (mod n).
           </div>
         </div>
 
@@ -211,18 +216,19 @@ export default function Theory() {
         <div style={card}>
           <h3 style={sectionTitle}>
             <span className="material-symbols-outlined" style={{ color: '#dc2626' }}>shield</span>
-            Безопасность RSA
+            Security of RSA
           </h3>
           <p style={p}>
-            Стойкость RSA держится на задаче факторизации: зная n = p·q, вычислить p и q отдельно
-            вычислительно непосильно при больших числах. Даже мощнейшие компьютеры потратили бы тысячи лет
-            на факторизацию 2048-битного n.
+            RSA's strength comes from the integer factorisation problem: knowing n = p·q,
+            recovering p and q individually is computationally infeasible at large sizes.
+            No publicly known classical method can factor a properly generated 2048-bit RSA modulus
+            in practical time.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {[
-              { label: 'Минимальная длина ключа сегодня', value: '2048 бит', color: '#16a34a' },
-              { label: 'Рекомендуемая длина ключа', value: '4096 бит', color: '#2563eb' },
-              { label: 'Устаревшие ключи (небезопасно)', value: '< 1024 бит', color: '#dc2626' },
+              { label: 'Common minimum today', value: '2048 bits', color: '#16a34a' },
+              { label: 'Larger sizes for long-term security', value: '3072 or 4096 bits', color: '#2563eb' },
+              { label: 'Legacy keys (insecure)', value: '< 1024 bits', color: '#dc2626' },
             ].map(item => (
               <div key={item.label} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', background: 'var(--t-surface-alt)', borderRadius: '0.375rem', border: `1px solid ${border}` }}>
                 <span style={{ fontSize: '0.8125rem', color: textColor }}>{item.label}</span>
@@ -231,8 +237,8 @@ export default function Theory() {
             ))}
           </div>
           <p style={muted}>
-            Учебные примеры используют малые числа для наглядности. В реальных системах (HTTPS, SSH, PGP)
-            используются числа размером сотни и тысячи бит.
+            The teaching examples on this site use small numbers for clarity. Production systems
+            (HTTPS, SSH, PGP) use RSA keys thousands of bits long.
           </p>
         </div>
 
@@ -240,14 +246,14 @@ export default function Theory() {
         <div style={card}>
           <h3 style={sectionTitle}>
             <span className="material-symbols-outlined" style={{ color: textMuted }}>history</span>
-            История и применение
+            History and applications
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {[
-              { year: '1977', text: 'RSA опубликован Ривестом, Шамиром и Адлеманом в MIT.' },
-              { year: '1983', text: 'MIT получил патент на RSA в США (действовал до 2000 г.).' },
-              { year: '2000', text: 'Патент истёк — RSA стал полностью свободным для использования.' },
-              { year: 'Сегодня', text: 'RSA применяется в TLS/HTTPS, SSH, PGP, цифровых подписях и PKI.' },
+              { year: '1977', text: 'RSA published by Rivest, Shamir, and Adleman at MIT.' },
+              { year: '1983', text: 'MIT received a US patent for RSA (in force until 2000).' },
+              { year: '2000', text: 'The patent expired; RSA became free to use worldwide.' },
+              { year: 'Today', text: 'RSA is used in TLS/HTTPS, SSH, PGP, digital signatures, and PKI.' },
             ].map(item => (
               <div key={item.year} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                 <div style={{ minWidth: '3.5rem', fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 700, color: primary, paddingTop: '0.1rem' }}>{item.year}</div>

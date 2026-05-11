@@ -4,6 +4,10 @@ import AsciiTableViz from './components/AsciiTableViz';
 import MathCard from './components/MathCard';
 import AnswerCheck from './components/AnswerCheck';
 import Calculator from './components/Calculator';
+import Concept from './components/Concept';
+import Glossary from './components/Glossary';
+import ProgressRail from './components/ProgressRail';
+import EulerOrbit from './components/lab/EulerOrbit';
 import { modPowTrace } from './utils/rsaMath';
 import { decodeValue } from './utils/ascii';
 
@@ -17,9 +21,15 @@ const card = {
 
 const normalizeNumber = (value) => value.replace(/\s+/g, '').trim();
 
-export default function Decryption({ state, prevStep }) {
+export default function Decryption({ state, setState, prevStep }) {
   const [activeBlock, setActiveBlock] = useState(0);
   const [decrypted, setDecrypted] = useState(Array(state.blocks.length).fill(null));
+
+  const markConcept = (name) => {
+    if (!setState) return;
+    setState((s) => ({ ...s, concepts: { ...s.concepts, [name]: true } }));
+  };
+  const concepts = state.concepts || {};
 
   const ready = state.blocks.length > 0 && state.blocks.every((b) => b.cipher !== null);
   const traces = useMemo(
@@ -56,10 +66,10 @@ export default function Decryption({ state, prevStep }) {
 
   return (
     <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -50 }}>
-      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.875rem', fontWeight: 700, color: textColor, margin: 0 }}>Decryption</h1>
-          <p style={{ color: muted, margin: '0.25rem 0 0' }}>Step 3 of 3. Recover each character with M = C^d mod n.</p>
+          <p style={{ color: muted, margin: '0.25rem 0 0' }}>Step 3 of 3. Recover each character with M = C<sup>d</sup> mod n. Only the <Glossary term="privatekey">private key</Glossary> can do this.</p>
         </div>
         <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.5rem', padding: '0.5rem 1rem' }}>
           <span style={{ fontSize: '0.625rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase' }}>Private key</span>
@@ -67,8 +77,38 @@ export default function Decryption({ state, prevStep }) {
         </div>
       </div>
 
+      <ProgressRail items={[
+        { label: 'd', value: state.d ? String(state.d) : null, done: !!state.d },
+        { label: 'n', value: state.n ? String(state.n) : null, done: !!state.n },
+        { label: 'ciphertexts', value: state.blocks.length || null, done: state.blocks.length > 0 },
+        { label: 'decrypted', value: decrypted.filter(v => v !== null).length, done: decrypted.length > 0 && decrypted.every(v => v !== null) },
+      ]} />
+      <div style={{ height: '1rem' }} />
+
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 18rem', gap: '1rem', alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+          <Concept
+            title="Why does raising to the d-th power return M?"
+            question={<>Raising C to the power d looks like just another modular exponentiation. The magic is that after exactly e·d multiplications by M, the orbit returns to M. Try a small example below, run the orbit, and watch it close.</>}
+            discoverDone={concepts.eulerian}
+            discover={
+              <EulerOrbit
+                n={state.n}
+                e={state.e}
+                d={state.d}
+                onUnderstood={() => markConcept('eulerian')}
+              />
+            }
+            reveal={
+              <MathCard
+                title="Euler's theorem (the engine of RSA)"
+                expression="If gcd(M, n) = 1, then M^φ(n) ≡ 1 (mod n)"
+                note="We chose e and d so that e·d = 1 + k·φ(n). Therefore M^(e·d) = M^1 · M^(k·φ(n)) = M · (M^φ(n))^k ≡ M · 1^k = M (mod n). C^d gives back M, exactly."
+              />
+            }
+          />
+
           <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Ciphertext numbers</h3>
             <p style={{ color: muted, margin: 0, fontSize: '0.875rem' }}>
@@ -113,9 +153,23 @@ export default function Decryption({ state, prevStep }) {
               <AsciiTableViz text={plaintext} codes={decrypted.map((v) => Number(v))} />
               <div style={{ background: 'var(--t-primary-bg)', border: `2px solid ${primary}`, borderRadius: '0.5rem', padding: '1.25rem' }}>
                 <div style={{ color: muted, fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', marginBottom: '0.5rem' }}>Recovered message</div>
-                <div style={{ background: primary, color: '#fff', display: 'inline-block', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 900, fontSize: '1.5rem', fontFamily: 'monospace' }}>
-                  {plaintext}
-                </div>
+                <motion.div
+                  initial={{ scale: 0.96 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.25 }}
+                  style={{ background: primary, color: '#fff', display: 'inline-flex', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 900, fontSize: '1.5rem', fontFamily: 'monospace', gap: '2px' }}
+                >
+                  {plaintext.split('').map((ch, i) => (
+                    <motion.span
+                      key={i}
+                      initial={{ y: -14, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: i * 0.05, duration: 0.25, type: 'tween' }}
+                    >
+                      {ch === ' ' ? ' ' : ch}
+                    </motion.span>
+                  ))}
+                </motion.div>
               </div>
               <button onClick={prevStep} style={{ alignSelf: 'flex-start', color: muted, fontWeight: 800, background: 'none', border: 'none', cursor: 'pointer' }}>Back to encryption</button>
             </div>
