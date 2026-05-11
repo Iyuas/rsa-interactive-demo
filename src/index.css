@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #f9f9ff;
+  --color-on-background: #041b3c;
+  --color-primary: #003d9b;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #0052cc;
+  --color-on-primary-container: #c4d2ff;
+  --color-secondary: #535f73;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #d4e0f8;
+  --color-on-secondary-container: #576377;
+  --color-surface: #f9f9ff;
+  --color-on-surface: #041b3c;
+  --color-surface-variant: #d7e2ff;
+  --color-on-surface-variant: #434654;
+  --color-outline: #737685;
+  --color-outline-variant: #c3c6d6;
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  
+  --color-inverse-surface: #1d3052;
+  --color-inverse-on-surface: #edf0ff;
+  
+  --spacing-container-margin: 24px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-base: 4px;
+  --spacing-column-gutter: 16px;
+  
+  --font-inter: 'Inter', sans-serif;
+  --font-h1: 'Inter', sans-serif;
+  --font-h2: 'Inter', sans-serif;
+  --font-h3: 'Inter', sans-serif;
+  --font-body-lg: 'Inter', sans-serif;
+  --font-body-md: 'Inter', sans-serif;
+  --font-body-sm: 'Inter', sans-serif;
+  --font-label-caps: 'Inter', sans-serif;
+  --font-data-mono: 'Monospace', monospace;
+}
+
+body {
+  font-family: var(--font-inter);
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
