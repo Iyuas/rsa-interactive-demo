@@ -19,17 +19,23 @@ export default function Concept({
   const [showReveal, setShowReveal] = useState(false);
 
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '1rem',
-      background: 'var(--t-surface)',
-      border: `1px solid ${discoverDone ? 'var(--t-accent)' : 'var(--t-border)'}`,
-      borderRadius: '0.75rem',
-      padding: '1.25rem',
-      boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-      transition: 'border-color 220ms ease',
-    }}>
+    <motion.div
+      animate={discoverDone ? { scale: [1, 1.012, 1] } : { scale: 1 }}
+      transition={{ duration: 0.45, times: [0, 0.4, 1], ease: 'easeOut' }}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+        background: 'var(--t-surface)',
+        border: `2px solid ${discoverDone ? 'var(--t-accent)' : 'var(--t-border)'}`,
+        borderRadius: '0.75rem',
+        padding: '1.25rem',
+        boxShadow: discoverDone
+          ? '0 0 0 4px rgba(34,197,94,0.14), 0 6px 18px rgba(34,197,94,0.18)'
+          : '0 1px 4px rgba(0,0,0,0.06)',
+        transition: 'border-color 220ms ease, box-shadow 280ms ease',
+      }}
+    >
       {title && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <h3 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, color: 'var(--t-text)' }}>
@@ -38,21 +44,26 @@ export default function Concept({
           <AnimatePresence>
             {discoverDone && (
               <motion.span
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
+                initial={{ scale: 0, opacity: 0, y: -3 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ type: 'spring', stiffness: 460, damping: 18 }}
                 style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
                   background: 'var(--t-accent)',
                   color: '#fff',
                   fontSize: '0.625rem',
-                  fontWeight: 800,
+                  fontWeight: 900,
                   textTransform: 'uppercase',
-                  padding: '2px 8px',
+                  padding: '3px 9px 3px 6px',
                   borderRadius: '999px',
                   letterSpacing: '0.05em',
+                  boxShadow: '0 3px 9px rgba(34,197,94,0.35)',
                 }}
               >
+                <span className="material-symbols-outlined" style={{ fontSize: '0.875rem' }}>check_circle</span>
                 Got it
               </motion.span>
             )}
@@ -120,6 +131,6 @@ export default function Concept({
           {practice}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
