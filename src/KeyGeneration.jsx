@@ -4,7 +4,6 @@ import PresetPicker from './components/PresetPicker';
 import MathCard from './components/MathCard';
 import AnswerCheck from './components/AnswerCheck';
 import Calculator from './components/Calculator';
-import EuclidTable from './components/EuclidTable';
 import BackSubList from './components/BackSubList';
 import Concept from './components/Concept';
 import Glossary from './components/Glossary';
@@ -259,9 +258,16 @@ export default function KeyGeneration({ state, setState, nextStep }) {
                 onCorrect={acceptE}
               />
               {state.e && eTrace && (
-                <div>
-                  <h4 style={{ fontSize: '0.75rem', fontWeight: 800, color: muted, textTransform: 'uppercase' }}>Euclidean check for e = {String(state.e)}</h4>
-                  <EuclidTable rows={eTrace.rows} showQuotient />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  <h4 style={{ fontSize: '0.75rem', fontWeight: 800, color: muted, textTransform: 'uppercase', margin: 0 }}>Euclidean check for e = {String(state.e)}</h4>
+                  <p style={{ fontSize: '0.8125rem', color: muted, margin: 0 }}>
+                    Run Euclid forward on (φ(n), e) and watch the remainders shrink. The last non-zero remainder is gcd(e, φ(n)). For e to be valid that gcd must be 1.
+                  </p>
+                  <EuclidStrip
+                    a={Number(state.phi) < 1e9 ? Number(state.phi) : 3120}
+                    b={Number(state.e) < 1e9 ? Number(state.e) : 17}
+                    forwardOnly
+                  />
                 </div>
               )}
             </div>
@@ -323,7 +329,9 @@ export default function KeyGeneration({ state, setState, nextStep }) {
             <button data-coach="kg-next" disabled={section >= SECTIONS.length - 1 || (section === 0 && !state.p)} onClick={() => setSection((s) => s + 1)} style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 800, color: primary, background: 'none', border: 'none', cursor: 'pointer', opacity: section >= SECTIONS.length - 1 || (section === 0 && !state.p) ? 0.4 : 1 }}>Next</button>
           </div>
         </div>
-        <Calculator />
+        <div style={{ position: 'sticky', top: '4.5rem', alignSelf: 'start' }}>
+          <Calculator />
+        </div>
       </div>
 
       <Coach

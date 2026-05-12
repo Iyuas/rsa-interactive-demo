@@ -8,7 +8,7 @@ import { extGcdTrace } from '../../utils/rsaMath';
 // each step expressing the remainder as a combination of the original a and b.
 // The student is "done" after walking at least 3 rows.
 
-export default function EuclidStrip({ a, b, onUnderstood }) {
+export default function EuclidStrip({ a, b, onUnderstood, forwardOnly = false }) {
   const trace = useMemo(() => extGcdTrace(BigInt(a), BigInt(b)), [a, b]);
   const rows = trace.table.slice(1);     // skip the seed row
   const backRows = trace.backSub;
@@ -89,7 +89,7 @@ export default function EuclidStrip({ a, b, onUnderstood }) {
         >
           Reset
         </button>
-        {forwardDone && (
+        {forwardDone && !forwardOnly && (
           <button
             onClick={() => setShowBack(v => !v)}
             style={{ ...ctrl(false), background: showBack ? accent : 'var(--t-surface)', color: showBack ? '#fff' : accent }}

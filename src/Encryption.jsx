@@ -25,6 +25,23 @@ const card = {
 
 const normalizeNumber = (value) => value.replace(/\s+/g, '').trim();
 
+const navBtn = (disabled) => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.2rem',
+  padding: '0.35rem 0.7rem',
+  fontSize: '0.7rem',
+  fontWeight: 800,
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+  borderRadius: '0.4rem',
+  border: '1px solid var(--t-border)',
+  background: 'var(--t-surface-alt)',
+  color: disabled ? 'var(--t-text-muted)' : 'var(--t-primary)',
+  cursor: disabled ? 'not-allowed' : 'pointer',
+  opacity: disabled ? 0.5 : 1,
+});
+
 export default function Encryption({ state, setState, nextStep, prevStep }) {
   const [text, setText] = useState(state.plaintext || DEFAULT_TEXT);
   const [phase, setPhase] = useState(0);
@@ -214,7 +231,27 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
 
           {phase >= 1 && active && activeTrace && (
             <div data-coach="encrypt-task" style={{ ...card, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Encrypt the selected character</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Encrypt character {activeBlock + 1} of {state.blocks.length}</h3>
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  <button
+                    onClick={() => setActiveBlock(i => Math.max(0, i - 1))}
+                    disabled={activeBlock === 0}
+                    style={navBtn(activeBlock === 0)}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>chevron_left</span>
+                    Prev
+                  </button>
+                  <button
+                    onClick={() => setActiveBlock(i => Math.min(state.blocks.length - 1, i + 1))}
+                    disabled={activeBlock >= state.blocks.length - 1}
+                    style={navBtn(activeBlock >= state.blocks.length - 1)}
+                  >
+                    Next
+                    <span className="material-symbols-outlined" style={{ fontSize: '1rem' }}>chevron_right</span>
+                  </button>
+                </div>
+              </div>
               <MathCard title="Your task" expression={`C = ${active.value}^${state.e} mod ${state.n}`} note="Use the calculator or your own modular arithmetic, then type the ciphertext." />
               <AnswerCheck
                 key={`encrypt-${activeBlock}-${active.value}`}
@@ -243,7 +280,9 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
             </div>
           )}
         </div>
-        <Calculator />
+        <div style={{ position: 'sticky', top: '4.5rem', alignSelf: 'start' }}>
+          <Calculator />
+        </div>
       </div>
 
       <Coach
