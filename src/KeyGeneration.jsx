@@ -288,24 +288,10 @@ export default function KeyGeneration({ state, setState, nextStep }) {
               <p style={{ color: muted, margin: 0, fontSize: '0.875rem' }}>
                 d is the <Glossary term="modinv">modular inverse</Glossary> of e: the number that makes (e · d) mod φ(n) = 1. We find it with the <Glossary term="extgcd">extended Euclidean algorithm</Glossary>.
               </p>
-              <Concept
-                title="Extended Euclidean algorithm — find d"
-                question={<>You already saw the forward pass on the previous step. The <Glossary term="extgcd">extended</Glossary> version adds a back-substitution: it expresses gcd(e, φ) as s·φ + t·e. The coefficient t (taken mod φ) is exactly d. Run the forward pass, then click "Run back-substitution".</>}
-                discoverDone={concepts.extgcd}
-                discover={
-                  <EuclidStrip
-                    a={Number(state.phi) < 1e9 ? Number(state.phi) : 3120}
-                    b={Number(state.e) < 1e9 ? Number(state.e) : 17}
-                    onUnderstood={() => markConcept('extgcd')}
-                  />
-                }
-                reveal={
-                  <MathCard
-                    title="Key identity"
-                    expression="s · φ(n) + t · e = 1   ⇒   t · e ≡ 1 (mod φ(n))   ⇒   d ≡ t (mod φ(n))"
-                    note="The s coefficient is discarded; t (normalised to the range [0, φ)) is the private exponent d."
-                  />
-                }
+              <MathCard
+                title="Key identity"
+                expression="s · φ(n) + t · e = 1   ⇒   t · e ≡ 1 (mod φ(n))   ⇒   d ≡ t (mod φ(n))"
+                note="Any value t that satisfies t · e ≡ 1 (mod φ(n)) works as d. We show the smallest positive one, but t + φ(n), t + 2·φ(n), … are all valid too."
               />
               <MathCard title="Target" expression={`(e · d) mod φ(n) = (${state.e} · d) mod ${state.phi} = 1`} />
               <AnswerCheck
@@ -314,9 +300,17 @@ export default function KeyGeneration({ state, setState, nextStep }) {
                 hint="Find e^-1 mod phi(n)."
                 expected={state.d}
                 normalize={normalizeNumber}
+                validate={(raw) => {
+                  try {
+                    const v = BigInt(normalizeNumber(raw));
+                    return v > 0n && (v * state.e) % state.phi === 1n;
+                  } catch {
+                    return false;
+                  }
+                }}
                 formatSolution={() => {
                   const equivalents = [state.d, state.d + state.phi, state.d + (2n * state.phi)];
-                  return `Use the smallest positive value:\nd = ${state.d}, because (${state.e} x ${state.d}) mod ${state.phi} = ${(state.e * state.d) % state.phi}\n\nEquivalent values modulo phi(n):\n${equivalents.map((d) => `d = ${d}`).join('\n')}`;
+                  return `Smallest positive value:\nd = ${state.d}, because (${state.e} × ${state.d}) mod ${state.phi} = ${(state.e * state.d) % state.phi}\n\nAny of these are also accepted (d + k·φ(n)):\n${equivalents.map((d) => `d = ${d}`).join('\n')}`;
                 }}
                 onCorrect={acceptD}
               />
