@@ -143,8 +143,9 @@ export default function Theory() {
               <ul style={{ ...muted, paddingLeft: '1.25rem', margin: '0.25rem 0' }}>
                 <li>1 &lt; e &lt; φ(n)</li>
                 <li>gcd(e, φ(n)) = 1 — that is, e and φ(n) are coprime</li>
+                <li>e is usually picked as a prime number, since a prime is automatically coprime with φ(n) unless it divides it</li>
               </ul>
-              <p style={muted}>The standard choice in real systems is e = 65537. For our example: e = 5.</p>
+              <p style={muted}>Common choices are 3, 5, 7, 17, 257, and 65537. The standard in real systems is e = 65537. For our example: e = 5.</p>
             </div>
 
             <div>

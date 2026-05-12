@@ -220,6 +220,12 @@ export default function KeyGeneration({ state, setState, nextStep }) {
               <p style={{ color: muted, margin: 0, fontSize: '0.875rem' }}>
                 e must satisfy 1 &lt; e &lt; φ(n), and <Glossary term="gcd">gcd</Glossary>(e, φ(n)) must be 1. In words: e and φ(n) share no common divisor other than 1.
               </p>
+              <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '0.5rem', padding: '0.6rem 0.85rem', fontSize: '0.8125rem', color: '#92400e', display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '1rem', marginTop: '1px' }}>tips_and_updates</span>
+                <span>
+                  <strong>Pick a <Glossary term="prime">prime number</Glossary> for e.</strong> A prime e is automatically coprime with φ(n) as long as it does not divide φ(n) itself. Common choices are 3, 5, 7, 17, 257, and 65537.
+                </span>
+              </div>
               <div style={{ background: 'var(--t-surface-alt)', border: '1px solid var(--t-border)', borderRadius: '0.5rem', padding: '0.75rem' }}>
                 <div style={{ fontSize: '0.625rem', fontWeight: 800, color: muted, textTransform: 'uppercase', marginBottom: '0.4rem' }}>
                   Find a coprime candidate
