@@ -196,42 +196,22 @@ export default function KeyGeneration({ state, setState, nextStep }) {
           )}
 
           {section === 2 && state.phi !== null && (
-            <>
-              <Concept
-                title="What does φ(n) count?"
-                question={<>φ(n) is the count of numbers from 1 to n−1 that are <Glossary term="coprime">coprime</Glossary> with n. Click numbers below that are coprime with {String(state.n)} — green means correct. Once you find a few, the pattern speaks for itself.</>}
-                discoverDone={concepts.phi}
-                discover={
-                  <GcdGrid
-                    target={Number(state.n) <= 200 ? Number(state.n) : 33}
-                    min={2}
-                    max={Number(state.n) <= 200 ? Number(state.n) : 33}
-                    pickGoal={3}
-                    onUnderstood={() => markConcept('phi')}
-                  />
-                }
-                reveal={
-                  <MathCard
-                    title="Shortcut for n = p·q"
-                    expression="φ(p·q) = (p − 1)(q − 1)"
-                    note="When n is the product of two distinct primes, you don't have to count one by one. Every number coprime with n is the count we want, and the formula gives it directly."
-                  />
-                }
+            <div style={card}>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Compute φ(n) — Euler's totient</h3>
+              <p style={{ fontSize: '0.875rem', color: muted, margin: 0 }}>
+                <Glossary term="phi">φ(n)</Glossary> counts the numbers from 1 to n−1 that are <Glossary term="coprime">coprime</Glossary> with n. When n is the product of two distinct primes p and q, there is a shortcut — no counting needed.
+              </p>
+              <MathCard title="Formula" expression={`φ(n) = (p − 1)(q − 1) = (${state.p} − 1)(${state.q} − 1)`} note="φ(n) must stay secret — anyone who knows it can derive d." />
+              <AnswerCheck
+                key={`phi-${state.p}-${state.q}`}
+                label="What is φ(n)?"
+                hint="Subtract 1 from each prime, then multiply."
+                expected={state.phi}
+                normalize={normalizeNumber}
+                formatSolution={() => `(${state.p} − 1) × (${state.q} − 1) = ${state.p - 1n} × ${state.q - 1n} = ${state.phi}`}
+                onCorrect={() => setProgress((p) => ({ ...p, phi: true }))}
               />
-              <div style={card}>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Now compute φ(n) for these primes</h3>
-                <MathCard title="Formula" expression={`φ(n) = (p − 1)(q − 1) = (${state.p} − 1)(${state.q} − 1)`} note="φ(n) is the count you just explored. In RSA it must stay secret." />
-                <AnswerCheck
-                  key={`phi-${state.p}-${state.q}`}
-                  label="What is φ(n)?"
-                  hint="Subtract 1 from each prime, then multiply."
-                  expected={state.phi}
-                  normalize={normalizeNumber}
-                  formatSolution={() => `(${state.p} − 1) × (${state.q} − 1) = ${state.p - 1n} × ${state.q - 1n} = ${state.phi}`}
-                  onCorrect={() => setProgress((p) => ({ ...p, phi: true }))}
-                />
-              </div>
-            </>
+            </div>
           )}
 
           {section === 3 && state.phi !== null && (
