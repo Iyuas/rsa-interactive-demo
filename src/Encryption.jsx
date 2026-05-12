@@ -7,6 +7,7 @@ import MathCard from './components/MathCard';
 import Concept from './components/Concept';
 import Glossary from './components/Glossary';
 import ProgressRail from './components/ProgressRail';
+import Coach from './components/Coach';
 import ModClock from './components/lab/ModClock';
 import BitLadder from './components/lab/BitLadder';
 import { encodeBlocks } from './utils/ascii';
@@ -146,6 +147,7 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
               <button
                 onClick={digitize}
                 disabled={!text}
+                data-coach="convert-btn"
                 style={{ background: text ? primary : '#9ca3af', color: '#fff', padding: '0 1.5rem', borderRadius: '0.5rem', fontWeight: 800, border: 'none', cursor: text ? 'pointer' : 'not-allowed', fontSize: '0.875rem' }}
               >
                 Convert to numbers
@@ -159,32 +161,59 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
               <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Characters become numbers</h3>
               <AsciiTableViz text={text} codes={[...text].map((c) => c.charCodeAt(0))} highlight={activeBlock} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.75rem' }}>
-                {state.blocks.map((b, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setActiveBlock(i)}
-                    style={{
-                      border: `1px solid ${i === activeBlock ? primary : border}`,
-                      borderRadius: '0.5rem',
-                      padding: '0.75rem',
-                      background: i === activeBlock ? primaryBg : surfaceAlt,
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                    }}
-                  >
-                    <div style={{ fontSize: '0.625rem', color: muted, textTransform: 'uppercase', fontWeight: 800 }}>Character {i + 1}</div>
-                    <div style={{ fontFamily: 'monospace', fontSize: '0.875rem', color: textColor }}>
-                      {b.chars[0] === ' ' ? 'space' : b.chars[0]} {'->'} M = {String(b.value)}
-                    </div>
-                    {b.cipher !== null && <div style={{ fontFamily: 'monospace', fontWeight: 800, color: 'var(--t-accent)', marginTop: '0.25rem' }}>C = {String(b.cipher)}</div>}
-                  </button>
-                ))}
+                {state.blocks.map((b, i) => {
+                  const done = b.cipher !== null;
+                  const isActive = i === activeBlock;
+                  return (
+                    <motion.button
+                      key={i}
+                      onClick={() => setActiveBlock(i)}
+                      animate={done ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+                      transition={{ duration: 0.45, times: [0, 0.4, 1], ease: 'easeOut' }}
+                      style={{
+                        position: 'relative',
+                        border: `2px solid ${done ? 'var(--t-accent)' : isActive ? primary : border}`,
+                        borderRadius: '0.5rem',
+                        padding: '0.75rem',
+                        background: done
+                          ? 'linear-gradient(135deg, #f0fdf4 0%, var(--t-surface) 100%)'
+                          : isActive ? primaryBg : surfaceAlt,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        boxShadow: done
+                          ? '0 0 0 3px rgba(34,197,94,0.18), 0 4px 14px rgba(34,197,94,0.18)'
+                          : 'none',
+                        transition: 'border-color 220ms ease, box-shadow 220ms ease, background 220ms ease',
+                      }}
+                    >
+                      {done && (
+                        <span
+                          className="material-symbols-outlined"
+                          style={{
+                            position: 'absolute',
+                            top: 6,
+                            right: 6,
+                            fontSize: '1rem',
+                            color: 'var(--t-accent)',
+                          }}
+                        >
+                          check_circle
+                        </span>
+                      )}
+                      <div style={{ fontSize: '0.625rem', color: muted, textTransform: 'uppercase', fontWeight: 800 }}>Character {i + 1}</div>
+                      <div style={{ fontFamily: 'monospace', fontSize: '0.875rem', color: textColor }}>
+                        {b.chars[0] === ' ' ? 'space' : b.chars[0]} {'->'} M = {String(b.value)}
+                      </div>
+                      {done && <div style={{ fontFamily: 'monospace', fontWeight: 800, color: 'var(--t-accent)', marginTop: '0.25rem' }}>C = {String(b.cipher)}</div>}
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
           )}
 
           {phase >= 1 && active && activeTrace && (
-            <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div data-coach="encrypt-task" style={{ ...card, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Encrypt the selected character</h3>
               <MathCard title="Your task" expression={`C = ${active.value}^${state.e} mod ${state.n}`} note="Use the calculator or your own modular arithmetic, then type the ciphertext." />
               <AnswerCheck
@@ -207,7 +236,7 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem' }}>
                 <button onClick={prevStep} style={{ color: muted, fontWeight: 800, background: 'none', border: 'none', cursor: 'pointer' }}>Back</button>
-                <button onClick={nextStep} style={{ background: primary, color: '#fff', fontWeight: 800, padding: '0.5rem 1.5rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer' }}>
+                <button onClick={nextStep} data-coach="goto-decrypt" style={{ background: primary, color: '#fff', fontWeight: 800, padding: '0.5rem 1.5rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer' }}>
                   Go to decryption
                 </button>
               </div>
@@ -216,6 +245,30 @@ export default function Encryption({ state, setState, nextStep, prevStep }) {
         </div>
         <Calculator />
       </div>
+
+      <Coach
+        show={phase === 0 && !!text}
+        anchorSelector='[data-coach="convert-btn"]'
+        hintKey="enc-convert"
+        side="top"
+        message={<>You typed a message. Press <strong>Convert to numbers</strong> to turn each character into its ASCII code.</>}
+      />
+
+      <Coach
+        show={phase >= 1 && !!active && active.cipher === null}
+        anchorSelector='[data-coach="encrypt-task"]'
+        hintKey={`enc-task-${activeBlock}`}
+        side="top"
+        message={<>Compute <code>C = M^e mod n</code> for the highlighted character. The calculator on the right understands <code>x^y%z</code>. Type the answer below.</>}
+      />
+
+      <Coach
+        show={allDone}
+        anchorSelector='[data-coach="goto-decrypt"]'
+        hintKey="enc-finish"
+        side="top"
+        message={<>All characters encrypted. Continue to <strong>Decryption</strong> to recover the original message.</>}
+      />
     </motion.div>
   );
 }

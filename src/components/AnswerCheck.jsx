@@ -33,18 +33,17 @@ export default function AnswerCheck({
   };
 
   const revealSolution = () => {
-    setShowSolution((showing) => {
-      const next = !showing;
-      if (next) {
-        setStatus('idle');
-        if (onRevealSolution) {
-          onRevealSolution(solutionValue);
-        } else if (onCorrect) {
-          onCorrect(String(solutionValue));
-        }
-      }
-      return next;
-    });
+    if (showSolution) {
+      setShowSolution(false);
+      return;
+    }
+    setShowSolution(true);
+    setStatus('idle');
+    if (onRevealSolution) {
+      onRevealSolution(solutionValue);
+    } else if (onCorrect) {
+      onCorrect(String(solutionValue));
+    }
   };
 
   const isCorrect = status === 'correct';

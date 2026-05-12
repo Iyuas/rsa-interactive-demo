@@ -7,6 +7,7 @@ import Calculator from './components/Calculator';
 import Concept from './components/Concept';
 import Glossary from './components/Glossary';
 import ProgressRail from './components/ProgressRail';
+import Coach from './components/Coach';
 import EulerOrbit from './components/lab/EulerOrbit';
 import { modPowTrace } from './utils/rsaMath';
 import { decodeValue } from './utils/ascii';
@@ -115,25 +116,54 @@ export default function Decryption({ state, setState, prevStep }) {
               Each ciphertext number came from one character. Select one, decrypt it, then convert the recovered ASCII code back to a letter.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '0.75rem' }}>
-              {state.blocks.map((b, i) => (
-                <button key={i} onClick={() => setActiveBlock(i)}
-                  style={{
-                    border: `1px solid ${i === activeBlock ? primary : border}`,
-                    borderRadius: '0.5rem',
-                    padding: '0.75rem',
-                    background: i === activeBlock ? 'var(--t-primary-bg)' : surfaceAlt,
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}>
-                  <div style={{ fontSize: '0.625rem', color: muted, textTransform: 'uppercase', fontWeight: 800 }}>Character {i + 1}</div>
-                  <div style={{ fontFamily: 'monospace', fontSize: '1rem', color: primary, fontWeight: 800 }}>C = {String(b.cipher)}</div>
-                  {decrypted[i] !== null && <div style={{ fontFamily: 'monospace', color: '#15803d', fontWeight: 800 }}>M = {String(decrypted[i])}</div>}
-                </button>
-              ))}
+              {state.blocks.map((b, i) => {
+                const done = decrypted[i] !== null;
+                const isActive = i === activeBlock;
+                return (
+                  <motion.button
+                    key={i}
+                    onClick={() => setActiveBlock(i)}
+                    animate={done ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+                    transition={{ duration: 0.45, times: [0, 0.4, 1], ease: 'easeOut' }}
+                    style={{
+                      position: 'relative',
+                      border: `2px solid ${done ? 'var(--t-accent)' : isActive ? primary : border}`,
+                      borderRadius: '0.5rem',
+                      padding: '0.75rem',
+                      background: done
+                        ? 'linear-gradient(135deg, #f0fdf4 0%, var(--t-surface) 100%)'
+                        : isActive ? 'var(--t-primary-bg)' : surfaceAlt,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      boxShadow: done
+                        ? '0 0 0 3px rgba(34,197,94,0.18), 0 4px 14px rgba(34,197,94,0.18)'
+                        : 'none',
+                      transition: 'border-color 220ms ease, box-shadow 220ms ease, background 220ms ease',
+                    }}>
+                    {done && (
+                      <span
+                        className="material-symbols-outlined"
+                        style={{
+                          position: 'absolute',
+                          top: 6,
+                          right: 6,
+                          fontSize: '1rem',
+                          color: 'var(--t-accent)',
+                        }}
+                      >
+                        check_circle
+                      </span>
+                    )}
+                    <div style={{ fontSize: '0.625rem', color: muted, textTransform: 'uppercase', fontWeight: 800 }}>Character {i + 1}</div>
+                    <div style={{ fontFamily: 'monospace', fontSize: '1rem', color: primary, fontWeight: 800 }}>C = {String(b.cipher)}</div>
+                    {done && <div style={{ fontFamily: 'monospace', color: '#15803d', fontWeight: 800 }}>M = {String(decrypted[i])}</div>}
+                  </motion.button>
+                );
+              })}
             </div>
           </div>
 
-          <div style={{ ...card, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div data-coach="decrypt-task" style={{ ...card, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0, color: textColor }}>Decrypt the selected ciphertext</h3>
             <MathCard tone="green" title="Your task" expression={`M = ${active.cipher}^${state.d} mod ${state.n}`} note="The result should be the ASCII number of the original character." />
             <AnswerCheck
@@ -177,6 +207,14 @@ export default function Decryption({ state, setState, prevStep }) {
         </div>
         <Calculator />
       </div>
+
+      <Coach
+        show={!allDone && active && decrypted[activeBlock] === null}
+        anchorSelector='[data-coach="decrypt-task"]'
+        hintKey={`dec-task-${activeBlock}`}
+        side="top"
+        message={<>Compute <code>M = C^d mod n</code> for this ciphertext. The result will be the original ASCII code.</>}
+      />
     </motion.div>
   );
 }

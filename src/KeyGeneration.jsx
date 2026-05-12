@@ -9,6 +9,7 @@ import BackSubList from './components/BackSubList';
 import Concept from './components/Concept';
 import Glossary from './components/Glossary';
 import ProgressRail from './components/ProgressRail';
+import Coach from './components/Coach';
 import PrimeSieve from './components/lab/PrimeSieve';
 import GcdGrid from './components/lab/GcdGrid';
 import EuclidStrip from './components/lab/EuclidStrip';
@@ -333,11 +334,33 @@ export default function KeyGeneration({ state, setState, nextStep }) {
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.5rem' }}>
             <button disabled={section === 0} onClick={() => setSection((s) => s - 1)} style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 800, color: section === 0 ? muted : textColor, background: 'none', border: 'none', cursor: section === 0 ? 'not-allowed' : 'pointer', opacity: section === 0 ? 0.4 : 1 }}>Back</button>
-            <button disabled={section >= SECTIONS.length - 1 || (section === 0 && !state.p)} onClick={() => setSection((s) => s + 1)} style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 800, color: primary, background: 'none', border: 'none', cursor: 'pointer', opacity: section >= SECTIONS.length - 1 || (section === 0 && !state.p) ? 0.4 : 1 }}>Next</button>
+            <button data-coach="kg-next" disabled={section >= SECTIONS.length - 1 || (section === 0 && !state.p)} onClick={() => setSection((s) => s + 1)} style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 800, color: primary, background: 'none', border: 'none', cursor: 'pointer', opacity: section >= SECTIONS.length - 1 || (section === 0 && !state.p) ? 0.4 : 1 }}>Next</button>
           </div>
         </div>
         <Calculator />
       </div>
+
+      <Coach
+        show={section === 0 && state.p && state.q && !progress.n}
+        anchorSelector='[data-coach="kg-next"]'
+        hintKey="kg-after-primes"
+        side="top"
+        message={<>Primes are set. Press <strong>Next</strong> to move on to computing n.</>}
+      />
+
+      <Coach
+        show={section > 0 && section < SECTIONS.length - 1 && (
+          (section === 1 && !progress.n) ||
+          (section === 2 && !progress.phi) ||
+          (section === 3 && !progress.e) ||
+          (section === 4 && !progress.d)
+        )}
+        anchorSelector='[data-coach="kg-next"]'
+        hintKey={`kg-stuck-${section}`}
+        side="top"
+        idleMs={18000}
+        message={<>Stuck? Try the experiment in the card above, or press <strong>Show solution</strong> on the answer field to reveal the value.</>}
+      />
     </motion.div>
   );
 }
