@@ -4,7 +4,6 @@ import PresetPicker from './components/PresetPicker';
 import MathCard from './components/MathCard';
 import AnswerCheck from './components/AnswerCheck';
 import Calculator from './components/Calculator';
-import BackSubList from './components/BackSubList';
 import Concept from './components/Concept';
 import Glossary from './components/Glossary';
 import ProgressRail from './components/ProgressRail';
@@ -257,20 +256,30 @@ export default function KeyGeneration({ state, setState, nextStep }) {
                 }}
                 onCorrect={acceptE}
               />
-              {state.e && eTrace && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                  <h4 style={{ fontSize: '0.75rem', fontWeight: 800, color: muted, textTransform: 'uppercase', margin: 0 }}>Euclidean check for e = {String(state.e)}</h4>
-                  <p style={{ fontSize: '0.8125rem', color: muted, margin: 0 }}>
-                    Run Euclid forward on (φ(n), e) and watch the remainders shrink. The last non-zero remainder is gcd(e, φ(n)). For e to be valid that gcd must be 1.
-                  </p>
-                  <EuclidStrip
-                    a={Number(state.phi) < 1e9 ? Number(state.phi) : 3120}
-                    b={Number(state.e) < 1e9 ? Number(state.e) : 17}
-                    forwardOnly
-                  />
-                </div>
-              )}
             </div>
+          )}
+
+          {section === 3 && state.e && eTrace && (
+            <Concept
+              title={`Euclidean algorithm — verify gcd(e, φ) = 1 for e = ${String(state.e)}`}
+              question={<>Now run the <Glossary term="euclid">Euclidean algorithm</Glossary> forward on (φ(n), e). Each step divides the larger by the smaller and keeps the remainder. The last non-zero remainder is the gcd. For e to be a valid public exponent that gcd must be 1.</>}
+              discoverDone={concepts.euclid}
+              discover={
+                <EuclidStrip
+                  a={Number(state.phi) < 1e9 ? Number(state.phi) : 3120}
+                  b={Number(state.e) < 1e9 ? Number(state.e) : 17}
+                  forwardOnly
+                  onUnderstood={() => markConcept('euclid')}
+                />
+              }
+              reveal={
+                <MathCard
+                  title="Why this works"
+                  expression="gcd(a, b) = gcd(b, a mod b)"
+                  note="Each step replaces the pair (a, b) with (b, a mod b). The pair shrinks every step yet keeps the same gcd, so eventually we land on (g, 0) — and g is the answer."
+                />
+              }
+            />
           )}
 
           {section === 4 && state.e && state.d && dTrace && (
@@ -280,14 +289,21 @@ export default function KeyGeneration({ state, setState, nextStep }) {
                 d is the <Glossary term="modinv">modular inverse</Glossary> of e: the number that makes (e · d) mod φ(n) = 1. We find it with the <Glossary term="extgcd">extended Euclidean algorithm</Glossary>.
               </p>
               <Concept
-                title="Walk through the extended Euclidean algorithm"
-                question={<>The forward pass keeps dividing the larger by the smaller until the remainder is 0. The back-substitution then expresses gcd(e, φ) as a linear combination of e and φ — and the coefficient on e is exactly d (mod φ). Step through it.</>}
+                title="Extended Euclidean algorithm — find d"
+                question={<>You already saw the forward pass on the previous step. The <Glossary term="extgcd">extended</Glossary> version adds a back-substitution: it expresses gcd(e, φ) as s·φ + t·e. The coefficient t (taken mod φ) is exactly d. Run the forward pass, then click "Run back-substitution".</>}
                 discoverDone={concepts.extgcd}
                 discover={
                   <EuclidStrip
                     a={Number(state.phi) < 1e9 ? Number(state.phi) : 3120}
                     b={Number(state.e) < 1e9 ? Number(state.e) : 17}
                     onUnderstood={() => markConcept('extgcd')}
+                  />
+                }
+                reveal={
+                  <MathCard
+                    title="Key identity"
+                    expression="s · φ(n) + t · e = 1   ⇒   t · e ≡ 1 (mod φ(n))   ⇒   d ≡ t (mod φ(n))"
+                    note="The s coefficient is discarded; t (normalised to the range [0, φ)) is the private exponent d."
                   />
                 }
               />
@@ -304,10 +320,6 @@ export default function KeyGeneration({ state, setState, nextStep }) {
                 }}
                 onCorrect={acceptD}
               />
-              <div>
-                <h4 style={{ fontSize: '0.75rem', fontWeight: 800, color: muted, textTransform: 'uppercase' }}>Back substitution</h4>
-                <BackSubList steps={dTrace.backSub} />
-              </div>
             </div>
           )}
 
